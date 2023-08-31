@@ -1,0 +1,1 @@
+const KoordinateURL="http://localhost:3000/koordinate/";
