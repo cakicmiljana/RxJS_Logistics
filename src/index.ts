@@ -1,7 +1,8 @@
+import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "./coordinates";
 import { Person } from "./person";
 import { Shipment } from "./shipment";
-import { Vehicle } from "./vehicle";
+import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 
 // glavni container
 const mainDiv = document.createElement("div");
@@ -48,13 +49,14 @@ mapDiv.classList.add("map-div");
 mapDiv.id="map";
 contentDiv.appendChild(mapDiv);
 
-function initMap() {
+(function initMap() {
     const map = new google.maps.Map(document.getElementById("map"), 
     {
-        center: { lat: 42.99772082585406, lng: 21.96547622553924 },
+        center: garageLocation,
         zoom: 15
     });
-    
-}
+})();
 
-initMap();
+trucksDiv.onclick = async () => {
+    Truck.prototype.showAllTrucksOnMap(mapDiv);
+}

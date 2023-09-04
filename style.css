@@ -34,13 +34,14 @@ html, body {
   margin: 0;
   padding: 0;
   border: 2px solid black;
+  display: flex;
+  flex-direction: row;
 }
 
 .map-div {
   height: 90%;
   width: 95%;
-  margin: 0;
-  padding: 0;
+  
 }
 
 .trucks-div {

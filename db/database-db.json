@@ -1,0 +1,48 @@
+{
+    "vehicles": [
+            {
+            "id": "LE536VA",
+            "RegistrationExpiryDate": "2025-05-14",
+            "Model": "BMW",
+            "Capacity": "21",
+            "Load": "18",
+            "CurrentSpeed": "110",
+            "GasLevel": "70",
+            "Status": "idle",
+            "CurrentLocation": { "lat": 42.9977, "lng": 23.9654 }
+        },
+        {
+            "id": "LE003AA",
+            "RegistrationExpiryDate": "2024-11-24",
+            "Model": "G67",
+            "Capacity": "29",
+            "Load": "25",
+            "CurrentSpeed": "95",
+            "GasLevel": "40",
+            "Status": "inTransit",
+            "CurrentLocation": { "lat": 42.9977, "lng": 21.9654 }
+        }
+    ],
+    "drivers":
+    [
+        {
+            "id": "121097831234",
+            "FullName":"Igor Markovic",
+            "PhoneNumber": "0645998739",
+            "Email": "igormark@gmail.com",
+            "DateOfBirth": "1978-12-10",
+            "Status": "available",
+            "AssignedVehicle": ""
+        },
+        {
+            "id": "02059991349256",
+            "FullName":"Zoran Mitic",
+            "PhoneNumber": "0661148966",
+            "Email": "miticzoran@gmail.com",
+            "DateOfBirth": "1999-05-02",
+            "Status": "onRoad",
+            "AssignedVehicle": "LE003AA"
+        }
+    ]
+
+}
