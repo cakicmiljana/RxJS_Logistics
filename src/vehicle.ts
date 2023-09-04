@@ -1,6 +1,6 @@
-import { Registration } from "./registration";
-import { Coordinates } from "./coordinates";
+import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
+import { interval, map } from "rxjs";
 
 export enum VehicleStatus {
     'idle'='idle',
@@ -71,5 +71,39 @@ export class Truck implements Vehicle {
                     map: map
                 });
             }
+        }
+
+        async trackTruck(ID: string) {
+            const truckJSON = await fetch(vehiclesURL + ID);
+            const truckData=await truckJSON.json();
+
+            const truck=new Truck(truckData.RegistrationID, truckData.RegistrationExpiryDate, truckData.Model, 
+                truckData.Capacity, truckData.Load, truckData.CurrentSpeed, truckData.GasLevel, truckData.Status,
+                new google.maps.LatLng(truckData.CurrentLocation.lat, truckData.CurrentLocation.lng));
+
+            const truckOnMap = new google.maps.Map(document.getElementById("map"), 
+            {
+                center: truck.CurrentLocation,
+                zoom: 4
+            });    
+            const marker=new google.maps.Marker({
+                position: truck.CurrentLocation,
+                map: truckOnMap
+            });
+
+            interval(1000).pipe(
+                map(() => {
+                    const latValue=truck.CurrentLocation.lat()+0.1;
+                    const lngValue=truck.CurrentLocation.lng()+0.1;
+                    truck.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
+                    console.log(truck.CurrentLocation.lat(), truck.CurrentLocation.lng());
+
+                    marker.setPosition(truck.CurrentLocation);
+                })
+            ).subscribe();
+        }
+
+        simulateMovement() {
+
         }
 }

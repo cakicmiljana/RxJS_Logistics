@@ -1,5 +1,5 @@
 import { Observable, interval, map } from "rxjs";
-import { Vehicle } from "./vehicle";
+import { Vehicle } from "../src/vehicle";
 
 export const startingX=42.9976;
 export const startingY=21.9654;

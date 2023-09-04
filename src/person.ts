@@ -1,3 +1,5 @@
+import { driversURL, shipmentsURL } from "../config";
+
 export enum DriverStatus {
     'available',
     'onRoad',
@@ -35,4 +37,9 @@ export class Driver implements Person {
             if(vehicleID)
                 this.AssignedVehicle=vehicleID;
         }
+
+    async assignShipment(shipmentID: string) {
+        await fetch(shipmentsURL + shipmentID);
+        await fetch(driversURL);
+    }
 }

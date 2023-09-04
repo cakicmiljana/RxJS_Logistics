@@ -43,6 +43,18 @@
             "Status": "onRoad",
             "AssignedVehicle": "LE003AA"
         }
+    ],
+    "shipments":
+    [
+        {
+            "id": "1",
+            "Status": "pending",
+            "TotalLoad": "17",
+            "DeliveryDate": "2023-10-10",
+            "Destination": { "lat": 44.9977, "lng": 20.4684 },
+            "AssignedDriverID": "02059991349256",
+            "AssignedVehicleID": "LE003AA"
+        }
     ]
 
 }

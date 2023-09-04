@@ -1,5 +1,5 @@
 import { garageLocation, vehiclesURL } from "../config";
-import { Coordinates } from "./coordinates";
+import { Coordinates } from "../testFunctions/coordinates";
 import { Person } from "./person";
 import { Shipment } from "./shipment";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
@@ -58,5 +58,6 @@ contentDiv.appendChild(mapDiv);
 })();
 
 trucksDiv.onclick = async () => {
-    Truck.prototype.showAllTrucksOnMap(mapDiv);
+    //Truck.prototype.showAllTrucksOnMap(mapDiv);
+    Truck.prototype.trackTruck("LE003AA");
 }
