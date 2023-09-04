@@ -1,0 +1,60 @@
+#map {
+  height: 100%;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.main-div {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.menu-div {
+  height: 90%;
+  width: 90%;
+  margin: 0;
+  padding: 0;
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-div {
+  height: 90%;
+  width: 90%;
+  margin: 0;
+  padding: 0;
+  border: 2px solid black;
+}
+
+.map-div {
+  height: 90%;
+  width: 95%;
+  margin: 0;
+  padding: 0;
+}
+
+.trucks-div {
+  margin: 15px;
+  font-size: x-large;
+  
+}
+
+.drivers-div {
+  margin: 15px;
+  font-size: x-large;
+}
+
+.bookings-div {
+  margin: 15px;
+  font-size: x-large;
+}
