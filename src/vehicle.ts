@@ -16,7 +16,7 @@ export interface Vehicle {
     //CurrentLocation: Coordinates,
     CurrentSpeed: number,
     GasLevel: number,
-    Status: VehicleStatus,
+    Status: 'idle' | 'inTransit',
 }
 
 export class Truck implements Vehicle {
@@ -27,11 +27,11 @@ export class Truck implements Vehicle {
     Load: number;
     CurrentSpeed: number;
     GasLevel: number;
-    Status: VehicleStatus;
+    Status: 'idle' | 'inTransit';
     CurrentLocation: google.maps.LatLng;
 
     constructor(registration: string, expiryDate: Date, model: string, capacity: number, load:number,
-        currSpeed: number, gasLevel: number, status:VehicleStatus, currLocation: google.maps.LatLng) {
+        currSpeed: number, gasLevel: number, status:'idle' | 'inTransit', currLocation: google.maps.LatLng) {
             this.RegistrationID=registration;
             this.RegistrationExpiryDate=expiryDate;
             this.Model=model;
@@ -85,17 +85,37 @@ export class Truck implements Vehicle {
             truckDiv.appendChild(truckName);
             
             const truckModel=document.createElement("label");
+            truckModel.classList.add("label");
             truckModel.textContent=this.Model;
             truckDiv.appendChild(truckModel);
 
-            const trackButton=document.createElement("input");
-            trackButton.type="button";
-            trackButton.value="TRACK LOCATION";
-            truckDiv.appendChild(trackButton);
+            const locationLabel=document.createElement("label");
+            locationLabel.classList.add("label");
+            locationLabel.textContent=this.CurrentLocation.toString();
+            truckDiv.appendChild(locationLabel);
 
-            trackButton.onclick = async () => {
-                this.trackTruckLocation(this.RegistrationID);
+            const speedLabel=document.createElement("label");
+            speedLabel.classList.add("label");
+            speedLabel.textContent= "CURRENT SPEED: " + this.CurrentSpeed.toString() + "km/s";
+            truckDiv.appendChild(speedLabel);
+
+            const gasLevelLabel=document.createElement("label");
+            gasLevelLabel.classList.add("label");
+            gasLevelLabel.textContent="GAS LEVEL: " + this.GasLevel.toString() + "%";
+            truckDiv.appendChild(gasLevelLabel);
+
+            console.log(this);
+            if(this.Status=='inTransit') {
+                const trackButton=document.createElement("input");
+                trackButton.type="button";
+                trackButton.value="TRACK LOCATION";
+                truckDiv.appendChild(trackButton);
+                
+                trackButton.onclick = async () => {
+                    this.trackTruckLocation(this.RegistrationID);
+                }
             }
+
         }
 
         async trackTruckLocation(ID: string) {

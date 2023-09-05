@@ -37,13 +37,13 @@ html, body {
   margin: 20px;
 }
 
-.trucks-div {
+.menuitem-div {
   margin-bottom: 30px;
   font-size: x-large;
   
 }
 
-.drivers-div {
+/* .drivers-div {
   margin-bottom: 30px;
   font-size: x-large;
 }
@@ -51,8 +51,18 @@ html, body {
 .bookings-div {
   margin-bottom: 30px;
   font-size: x-large;
-}
+} */
 
 .label {
-  margin: 10px;
+  margin-bottom: 5px;
+}
+
+.truck-div {
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  padding: 20px;
+  align-items: center;
+  border: 1px solid black;
+  height: 150px;
 }
