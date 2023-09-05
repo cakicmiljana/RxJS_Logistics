@@ -53,7 +53,7 @@ export class Truck implements Vehicle {
                     .catch(error => console.error(error));
         }
 
-        async showAllTrucksOnMap(mapElement: HTMLDivElement) {
+        static async showAllTrucksOnMap(mapElement: HTMLDivElement) {
             const vehiclesJSON=await fetch(vehiclesURL);
             const vehiclesData=await vehiclesJSON.json();
             const map = new google.maps.Map(mapElement, 
@@ -73,11 +73,36 @@ export class Truck implements Vehicle {
             }
         }
 
-        async trackTruck(ID: string) {
+        drawTruck(host: HTMLDivElement) {
+
+            const truckDiv=document.createElement("div");
+            truckDiv.classList.add("truck-div");
+            host.appendChild(truckDiv);
+
+            const truckName=document.createElement("label");
+            truckName.classList.add("label");
+            truckName.textContent=this.RegistrationID;
+            truckDiv.appendChild(truckName);
+            
+            const truckModel=document.createElement("label");
+            truckModel.textContent=this.Model;
+            truckDiv.appendChild(truckModel);
+
+            const trackButton=document.createElement("input");
+            trackButton.type="button";
+            trackButton.value="TRACK LOCATION";
+            truckDiv.appendChild(trackButton);
+
+            trackButton.onclick = async () => {
+                this.trackTruckLocation(this.RegistrationID);
+            }
+        }
+
+        async trackTruckLocation(ID: string) {
             const truckJSON = await fetch(vehiclesURL + ID);
             const truckData=await truckJSON.json();
 
-            const truck=new Truck(truckData.RegistrationID, truckData.RegistrationExpiryDate, truckData.Model, 
+            const truck=new Truck(truckData.id, truckData.RegistrationExpiryDate, truckData.Model, 
                 truckData.Capacity, truckData.Load, truckData.CurrentSpeed, truckData.GasLevel, truckData.Status,
                 new google.maps.LatLng(truckData.CurrentLocation.lat, truckData.CurrentLocation.lng));
 

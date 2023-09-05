@@ -18,6 +18,7 @@ mainDiv.appendChild(menuDiv);
 const menuH=document.createElement("h2");
 menuH.classList.add("menu-h");
 menuH.textContent="MENU";
+menuH.style.marginBottom="40px";
 menuDiv.appendChild(menuH);
 
 // podaci o kamionima
@@ -50,7 +51,7 @@ mapDiv.id="map";
 contentDiv.appendChild(mapDiv);
 
 (function initMap() {
-    const map = new google.maps.Map(document.getElementById("map"), 
+    const map = new google.maps.Map(mapDiv, 
     {
         center: garageLocation,
         zoom: 15
@@ -58,6 +59,15 @@ contentDiv.appendChild(mapDiv);
 })();
 
 trucksDiv.onclick = async () => {
-    //Truck.prototype.showAllTrucksOnMap(mapDiv);
-    Truck.prototype.trackTruck("LE003AA");
+    const trucksJSON = await fetch(vehiclesURL);
+    const trucksData=await trucksJSON.json();
+    for(let truckData of trucksData) {
+        const truck=new Truck(truckData.id, truckData.RegistrationExpiryDate, truckData.Model, 
+            truckData.Capacity, truckData.Load, truckData.CurrentSpeed, truckData.GasLevel, truckData.Status,
+            new google.maps.LatLng(truckData.CurrentLocation.lat, truckData.CurrentLocation.lng));
+            
+            truck.drawTruck(contentDiv);
+    }
+    //Truck.showAllTrucksOnMap(mapDiv);
+    //Truck.prototype.trackTruck("LE003AA");
 }
