@@ -1,5 +1,7 @@
+import { debounceTime, fromEvent, map, mergeAll, mergeMap, tap } from "rxjs";
 import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "../testFunctions/coordinates";
+import { getTrucks } from "./APIcalls";
 import { Person } from "./person";
 import { Shipment } from "./shipment";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
@@ -58,22 +60,22 @@ contentDiv.appendChild(mapDiv);
     });
 })();
 
-menuDiv.onclick = async () => {
-    if(contentDiv.contains(mapDiv))
-        contentDiv.removeChild(mapDiv);
-}
+menuDiv.addEventListener("click", function(event) {
+    let trgt=<Element>event.target;
+    if(trgt.classList.contains('menuitem-div'))
+        while(contentDiv.firstChild)
+            contentDiv.removeChild(contentDiv.lastChild);
+});
 
-trucksDiv.onclick = async () => {
-    const trucksJSON = await fetch(vehiclesURL);
-    const trucksData=await trucksJSON.json();
-    for(let truckData of trucksData) {
-        const truck=new Truck(truckData.id, truckData.RegistrationExpiryDate, truckData.Model, 
-            truckData.Capacity, truckData.Load, truckData.CurrentSpeed, truckData.GasLevel, truckData.Status,
-            new google.maps.LatLng(truckData.CurrentLocation.lat, truckData.CurrentLocation.lng));
-            
-            console.log(typeof truck.Status);
-            truck.drawTruck(contentDiv);
-    }
-    //Truck.showAllTrucksOnMap(mapDiv);
-    //Truck.prototype.trackTruck("LE003AA");
+
+// trucksDiv.onclick = async () => {
+//     getTrucks(contentDiv);
+// }
+
+trucksDiv.onclick = () => {
+    getTrucks(contentDiv).pipe(
+        tap(val => val.drawTruck(contentDiv))
+    ).subscribe();
+    
+
 }

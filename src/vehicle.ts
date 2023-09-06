@@ -1,6 +1,6 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
-import { interval, map } from "rxjs";
+import { Observable, Subscription, interval, map, of, scan, tap } from "rxjs";
 
 export enum VehicleStatus {
     'idle'='idle',
@@ -9,7 +9,7 @@ export enum VehicleStatus {
 
 export interface Vehicle {
     // LicencePlate: Registration,
-    RegistrationID: string,
+    id: string,
     RegistrationExpiryDate: Date,
     Model: string,
     Capacity: number,
@@ -20,7 +20,7 @@ export interface Vehicle {
 }
 
 export class Truck implements Vehicle {
-    RegistrationID: string;
+    id: string;
     RegistrationExpiryDate: Date;
     Model: string;
     Capacity: number;
@@ -32,7 +32,7 @@ export class Truck implements Vehicle {
 
     constructor(registration: string, expiryDate: Date, model: string, capacity: number, load:number,
         currSpeed: number, gasLevel: number, status:'idle' | 'inTransit', currLocation: google.maps.LatLng) {
-            this.RegistrationID=registration;
+            this.id=registration;
             this.RegistrationExpiryDate=expiryDate;
             this.Model=model;
             this.Capacity=capacity;
@@ -42,17 +42,7 @@ export class Truck implements Vehicle {
             this.Status=status;
             this.CurrentLocation=currLocation;
         }
-
-        getTruck(registrationID: string) {
-            fetch(vehiclesURL + registrationID)
-                .then(vehicle => {
-                    if(!vehicle.ok)
-                        throw new Error("Vehicle not found.");
-                    else
-                        console.log(vehicle.json())})
-                    .catch(error => console.error(error));
-        }
-
+        
         static async showAllTrucksOnMap(mapElement: HTMLDivElement) {
             const vehiclesJSON=await fetch(vehiclesURL);
             const vehiclesData=await vehiclesJSON.json();
@@ -72,8 +62,8 @@ export class Truck implements Vehicle {
                 });
             }
         }
-
-        drawTruck(host: HTMLDivElement) {
+        
+        drawTruck(host: HTMLElement) {
 
             const truckDiv=document.createElement("div");
             truckDiv.classList.add("truck-div");
@@ -81,7 +71,7 @@ export class Truck implements Vehicle {
 
             const truckName=document.createElement("label");
             truckName.classList.add("label");
-            truckName.textContent=this.RegistrationID;
+            truckName.textContent=this.id;
             truckDiv.appendChild(truckName);
             
             const truckModel=document.createElement("label");
@@ -111,44 +101,71 @@ export class Truck implements Vehicle {
                 trackButton.value="TRACK LOCATION";
                 truckDiv.appendChild(trackButton);
                 
-                trackButton.onclick = async () => {
-                    this.trackTruckLocation(this.RegistrationID);
-                }
+                trackButton.addEventListener('click', (event) => 
+                {
+                    // while(host.childNodes.length>1){
+                    //     if(host.firstChild!=event.target)
+                    //         host.removeChild(host.firstChild);
+                    // }
+
+                    this.trackTruckLocation(this.id, host);
+                })
+                this.simulateSpeedChange(speedLabel).subscribe();
             }
 
         }
 
-        async trackTruckLocation(ID: string) {
-            const truckJSON = await fetch(vehiclesURL + ID);
-            const truckData=await truckJSON.json();
+        async trackTruckLocation(ID: string, host: HTMLElement) {
 
-            const truck=new Truck(truckData.id, truckData.RegistrationExpiryDate, truckData.Model, 
-                truckData.Capacity, truckData.Load, truckData.CurrentSpeed, truckData.GasLevel, truckData.Status,
-                new google.maps.LatLng(truckData.CurrentLocation.lat, truckData.CurrentLocation.lng));
-
-            const truckOnMap = new google.maps.Map(document.getElementById("map"), 
+            const truckOnMap = new google.maps.Map(host, 
             {
-                center: truck.CurrentLocation,
+                center: this.CurrentLocation,
                 zoom: 4
             });    
             const marker=new google.maps.Marker({
-                position: truck.CurrentLocation,
+                position: this.CurrentLocation,
                 map: truckOnMap
             });
 
-            interval(1000).pipe(
-                map(() => {
-                    const latValue=truck.CurrentLocation.lat()+0.1;
-                    const lngValue=truck.CurrentLocation.lng()+0.1;
-                    truck.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
-                    console.log(truck.CurrentLocation.lat(), truck.CurrentLocation.lng());
-
-                    marker.setPosition(truck.CurrentLocation);
-                })
-            ).subscribe();
+            this.simulateMovement(marker);
         }
 
-        simulateMovement() {
+        simulateMovement(marker: google.maps.Marker) {
+            interval(1000).pipe(
+                map(() => {
+                    const latValue=this.CurrentLocation.lat()+0.1;
+                    const lngValue=this.CurrentLocation.lng()+0.1;
+                    this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
+                    //console.log(this.CurrentLocation.lat(), this.CurrentLocation.lng());
 
+                    marker.setPosition(this.CurrentLocation);
+                    
+                    
+                })
+                ).subscribe();
+        }
+
+        simulateSpeedChange(host: HTMLLabelElement) {
+            return interval(1000).pipe(
+                map((x) => {
+                    this.CurrentSpeed=x;
+                    console.log(x);
+                }),
+                tap( () => {
+                    
+                    host.textContent="CURRENT SPEED: " + this.CurrentSpeed.toString() + "km/s";
+                })
+            )
+        }
+
+        simulateGasLevelChange() {
+            const ga$=of(this.GasLevel);
+            console.log("gas is " + this.GasLevel);
+            return ga$.pipe(
+                
+                scan((acc, val) => {
+                    return acc-val;
+                })
+            ).subscribe(x => console.log(x));
         }
 }
