@@ -62,6 +62,20 @@ export class Truck implements Vehicle {
                 });
             }
         }
+
+        updateData(newData: Partial<Truck>): void {
+            // Update individual properties as needed
+            if (newData.hasOwnProperty('CurrentLocation')) {
+              this.CurrentLocation = newData.CurrentLocation;
+            }
+            if (newData.hasOwnProperty('CurrentSpeed')) {
+              this.CurrentSpeed = newData.CurrentSpeed;
+            }
+            if (newData.hasOwnProperty('GasLevel')) {
+              this.GasLevel = newData.GasLevel;
+            }
+            // Update other properties in a similar manner
+          }
         
         drawTruck(host: HTMLElement) {
 
@@ -110,7 +124,6 @@ export class Truck implements Vehicle {
 
                     this.trackTruckLocation(this.id, host);
                 })
-                this.simulateSpeedChange(speedLabel).subscribe();
             }
 
         }
@@ -127,33 +140,44 @@ export class Truck implements Vehicle {
                 map: truckOnMap
             });
 
-            this.simulateMovement(marker);
+            this.simulateMovement().subscribe(newLocation => marker.setPosition(newLocation));
         }
 
-        simulateMovement(marker: google.maps.Marker) {
-            interval(1000).pipe(
+        simulateMovement()  {
+            return interval(1000).pipe(
                 map(() => {
                     const latValue=this.CurrentLocation.lat()+0.1;
                     const lngValue=this.CurrentLocation.lng()+0.1;
                     this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
-                    //console.log(this.CurrentLocation.lat(), this.CurrentLocation.lng());
 
-                    marker.setPosition(this.CurrentLocation);
+                    return this.CurrentLocation;
+                }),
+                tap(() => {
                     
-                    
-                })
-                ).subscribe();
+                }));
         }
 
-        simulateSpeedChange(host: HTMLLabelElement) {
+        // simulateMovement(marker: google.maps.Marker) {
+        //     interval(1000).pipe(
+        //         map(() => {
+        //             const latValue=this.CurrentLocation.lat()+0.1;
+        //             const lngValue=this.CurrentLocation.lng()+0.1;
+        //             this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
+        //             //console.log(this.CurrentLocation.lat(), this.CurrentLocation.lng());
+
+        //             marker.setPosition(this.CurrentLocation);
+        //         }),
+        //         tap(() => {
+                    
+        //         })
+        //         ).subscribe();
+        // }
+
+        simulateSpeedChange() {
             return interval(1000).pipe(
                 map((x) => {
                     this.CurrentSpeed=x;
                     console.log(x);
-                }),
-                tap( () => {
-                    
-                    host.textContent="CURRENT SPEED: " + this.CurrentSpeed.toString() + "km/s";
                 })
             )
         }

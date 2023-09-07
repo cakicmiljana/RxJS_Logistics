@@ -67,15 +67,23 @@ menuDiv.addEventListener("click", function(event) {
             contentDiv.removeChild(contentDiv.lastChild);
 });
 
-
-// trucksDiv.onclick = async () => {
-//     getTrucks(contentDiv);
-// }
+const allTruck$=getTrucks();
 
 trucksDiv.onclick = () => {
-    getTrucks(contentDiv).pipe(
-        tap(val => val.drawTruck(contentDiv))
-    ).subscribe();
-    
+    event.preventDefault();
+    allTruck$.subscribe(myTruck => {
+            myTruck.drawTruck(contentDiv);
+            myTruck.simulateMovement().subscribe(x=>console.log(x));
 
+            fetch(`${vehiclesURL}/${myTruck.id}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(myTruck),
+              }).then(newTruckData => {
+                console.log("inside fetch");
+                myTruck.updateData(myTruck);
+            });
+        })
 }

@@ -12,7 +12,7 @@ export function getTruck(registrationID: string) {
             .catch(error => console.error(error));
 }
 
-export function getTrucks(host: HTMLElement) : Observable<Truck> {
+export function getTrucks() : Observable<Truck> {
     return new Observable<Truck>((observer) => {
         fetch(vehiclesURL).then(async (response) => {
             if(!response.ok)
