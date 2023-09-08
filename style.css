@@ -37,13 +37,13 @@ html, body {
   margin: 20px;
 }
 
-.menuitem-div {
+.trucks-div {
   margin-bottom: 30px;
   font-size: x-large;
   
 }
 
-/* .drivers-div {
+.drivers-div {
   margin-bottom: 30px;
   font-size: x-large;
 }
@@ -51,7 +51,7 @@ html, body {
 .bookings-div {
   margin-bottom: 30px;
   font-size: x-large;
-} */
+}
 
 .label {
   margin-bottom: 5px;
@@ -65,7 +65,7 @@ html, body {
   align-items: center;
   border: 1px solid black;
   height: 150px;
-  width: 300px;
+  width: 250px;
 }
 
 .contentItems-div {

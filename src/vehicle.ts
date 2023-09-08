@@ -1,6 +1,7 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
 import { Observable, Subscription, interval, map, of, scan, tap } from "rxjs";
+import { createTruckObservables } from "./services";
 
 export enum VehicleStatus {
     'idle'='idle',
@@ -42,26 +43,6 @@ export class Truck implements Vehicle {
             this.Status=status;
             this.CurrentLocation=currLocation;
         }
-        
-        static async showAllTrucksOnMap(mapElement: HTMLDivElement) {
-            const vehiclesJSON=await fetch(vehiclesURL);
-            const vehiclesData=await vehiclesJSON.json();
-            const map = new google.maps.Map(mapElement, 
-            {
-                center: garageLocation,
-                zoom: 7
-            });
-            for(let vehicle of vehiclesData) {
-                const truck = new Truck(vehicle.id,vehicle.RegistrationExpiryDate,vehicle.Model, vehicle.Capacity,
-                    vehicle.Load,vehicle.CurrentSpeed,vehicle.GasLevel,vehicle.Status, vehicle.CurrentLocation);
-                console.log(truck);
-                
-                const mark=new google.maps.Marker({
-                    position: truck.CurrentLocation,
-                    map: map
-                });
-            }
-        }
 
         updateData(newData: Partial<Truck>): void {
             // Update individual properties as needed
@@ -78,7 +59,7 @@ export class Truck implements Vehicle {
           }
         
         drawTruck(host: HTMLElement) {
-
+            
             const truckDiv=document.createElement("div");
             truckDiv.classList.add("truck-div");
             host.appendChild(truckDiv);
@@ -108,7 +89,6 @@ export class Truck implements Vehicle {
             gasLevelLabel.textContent="GAS LEVEL: " + this.GasLevel.toString() + "%";
             truckDiv.appendChild(gasLevelLabel);
 
-            console.log(this);
             if(this.Status=='inTransit') {
                 const trackButton=document.createElement("input");
                 trackButton.type="button";
@@ -125,6 +105,8 @@ export class Truck implements Vehicle {
                     this.trackTruckLocation(this.id, host);
                 })
             }
+
+            console.log("div: ", truckDiv);
 
         }
 
@@ -192,4 +174,22 @@ export class Truck implements Vehicle {
                 })
             ).subscribe(x => console.log(x));
         }
+
+        
+        // static async showAllTrucksOnMap(vehicle$: Observable<Truck>, mapElement: HTMLDivElement) {
+        //     const myMap = new google.maps.Map(mapElement, 
+        //     {
+        //         center: garageLocation,
+        //         zoom: 7
+        //     });
+        //     return vehicle$.pipe(
+        //         map((truck) => {
+        //             const marker = new google.maps.Marker({
+        //                 position: truck.CurrentLocation,
+        //                 map: myMap
+        //             });
+        //             return marker;
+        //         })
+        //     );
+        // }
 }
