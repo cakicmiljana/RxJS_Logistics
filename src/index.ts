@@ -48,45 +48,65 @@ contentDiv.classList.add("content-div");
 mainDiv.appendChild(contentDiv);
 
 // mapa
-const mapDiv=document.createElement("div");
-mapDiv.classList.add("map-div");
-mapDiv.id="map";
-contentDiv.appendChild(mapDiv);
+// const mapDiv=document.createElement("div");
+// mapDiv.classList.add("map-div");
+// mapDiv.id="map";
+// contentDiv.appendChild(mapDiv);
 
+//const truckkk=new Truck("1",new Date("2025-05-14"),"1",1,1,1,1,"idle",new google.maps.LatLng( garageLocation),new google.maps.LatLng( garageLocation));
 
 let allTruck$ = createTruckObservables();
 
-(async function initMap() {
-    const myMap = new google.maps.Map(mapDiv, 
-    {
-        center: garageLocation,
-        zoom: 7
-    });
+let gasLevel$;
+let speed$;
+let location$;
 
-    allTruck$.map(truck$ => truck$);
-
-    // allTruck$.forEach((truck$) => {
-    //     truck$.subscribe((truck) => {
-    //         const marker = new google.maps.Marker({
-    //             position: truck.CurrentLocation,
-    //             map: myMap
-    //         });
-    //     })
-    // })
-})();
+allTruck$.subscribe(trucks=>{
+    for(let t of trucks) {
+        const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
+            t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
+            new google.maps.LatLng(t.FinalDestination));
+        
+        truck.drawTruck(contentDiv);
+        truck.updateGasLevel();
+        truck.updateSpeed();
+    }
+});
 
 
-trucksDiv.onclick = async (event) => {
-    event.preventDefault();
 
-    deleteContent(event, 'trucks-div', contentDiv);
+// .subscribe((trucks) => {
+//     console.log(trucks);
+//     trucks.forEach(truck => {
+//         console.log(truck);
+//         truck.drawTruck(contentDiv);
+//     });
+// });
     
-    merge(...allTruck$).subscribe((truck) => {
-            console.log("clicked ", truck);
-            truck.drawTruck(contentDiv);
-    })
+// (async function initMap() {
+//     const myMap = new google.maps.Map(mapDiv, 
+//     {
+//         center: garageLocation,
+//         zoom: 7
+//     });
+// })();
 
-}
+
+// trucksDiv.onclick = async (event) => {
+//     event.preventDefault();
+
+//     deleteContent(event, 'trucks-div', contentDiv);
+    
+//     allTruck$.subscribe(trucks=>{
+//         for(let t of trucks) {
+//             const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
+//                 t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
+//                 new google.maps.LatLng(t.FinalDestination));
+            
+//             truck.drawTruck(contentDiv);
+//         }
+//     });
+// }
 
 driversDiv.onclick = async (event) => {
     event.preventDefault();
@@ -99,15 +119,3 @@ bookingsDiv.onclick = async (event) => {
 
     deleteContent(event, 'bookings-div', contentDiv);
 }
-
-
-// fetch(`${vehiclesURL}/${myTruck.id}`, {
-//     method: 'PUT',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify(myTruck),
-//   }).then(newTruckData => {
-//     console.log("inside fetch");
-//     myTruck.updateData(myTruck);
-// });

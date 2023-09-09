@@ -1,6 +1,6 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
-import { Observable, Subscription, interval, map, of, scan, tap } from "rxjs";
+import { Observable, Subject, Subscription, interval, map, of, scan, take, takeUntil, tap } from "rxjs";
 import { createTruckObservables } from "./services";
 
 export enum VehicleStatus {
@@ -9,7 +9,6 @@ export enum VehicleStatus {
 }
 
 export interface Vehicle {
-    // LicencePlate: Registration,
     id: string,
     RegistrationExpiryDate: Date,
     Model: string,
@@ -30,9 +29,15 @@ export class Truck implements Vehicle {
     GasLevel: number;
     Status: 'idle' | 'inTransit';
     CurrentLocation: google.maps.LatLng;
+    FinalDestination: google.maps.LatLng;
+
+    private gasLevelSubject = new Subject<number>();
+    private locationSubject = new Subject<google.maps.LatLng>();
+    private speedSubject = new Subject<number>();
+    private destinationReachedSubject = new Subject<void>();
 
     constructor(registration: string, expiryDate: Date, model: string, capacity: number, load:number,
-        currSpeed: number, gasLevel: number, status:'idle' | 'inTransit', currLocation: google.maps.LatLng) {
+        currSpeed: number, gasLevel: number, status:'idle' | 'inTransit', currLocation: google.maps.LatLng, finalDestination: google.maps.LatLng) {
             this.id=registration;
             this.RegistrationExpiryDate=expiryDate;
             this.Model=model;
@@ -42,6 +47,7 @@ export class Truck implements Vehicle {
             this.GasLevel=gasLevel;
             this.Status=status;
             this.CurrentLocation=currLocation;
+            this.FinalDestination=finalDestination;
         }
 
         updateData(newData: Partial<Truck>): void {
@@ -74,10 +80,15 @@ export class Truck implements Vehicle {
             truckModel.textContent=this.Model;
             truckDiv.appendChild(truckModel);
 
-            const locationLabel=document.createElement("label");
-            locationLabel.classList.add("label");
-            locationLabel.textContent=this.CurrentLocation.toString();
-            truckDiv.appendChild(locationLabel);
+            const currentLocationLabel=document.createElement("label");
+            currentLocationLabel.classList.add("label");
+            currentLocationLabel.textContent= "CURRENT LOCATION: " + this.CurrentLocation.toString();
+            truckDiv.appendChild(currentLocationLabel);
+            
+            const destinationLabel=document.createElement("label");
+            destinationLabel.classList.add("label");
+            destinationLabel.textContent= "DESTINATION: " + this.FinalDestination.toString();
+            truckDiv.appendChild(destinationLabel);
 
             const speedLabel=document.createElement("label");
             speedLabel.classList.add("label");
@@ -95,12 +106,14 @@ export class Truck implements Vehicle {
                 trackButton.value="TRACK LOCATION";
                 truckDiv.appendChild(trackButton);
                 
-                trackButton.addEventListener('click', (event) => 
+                truckDiv.addEventListener('click', (event) => 
                 {
-                    // while(host.childNodes.length>1){
-                    //     if(host.firstChild!=event.target)
-                    //         host.removeChild(host.firstChild);
-                    // }
+                    console.log("target ", event.target);
+                    while(host.childNodes.length>1){
+                        if(host.firstChild!=event.target)
+                            host.removeChild(host.firstChild);
+                        else host.removeChild(host.lastChild);
+                    }
 
                     this.trackTruckLocation(this.id, host);
                 })
@@ -128,6 +141,7 @@ export class Truck implements Vehicle {
         simulateMovement()  {
             return interval(1000).pipe(
                 map(() => {
+                    console.log(this);
                     const latValue=this.CurrentLocation.lat()+0.1;
                     const lngValue=this.CurrentLocation.lng()+0.1;
                     this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
@@ -192,4 +206,27 @@ export class Truck implements Vehicle {
         //         })
         //     );
         // }
+
+        updateGasLevel() {
+            const gasLevelObservable=interval(3000);
+
+            gasLevelObservable.pipe(
+                takeUntil(this.destinationReachedSubject)
+            )
+            .subscribe(() => {
+                this.GasLevel-=1;
+            })
+        }
+
+        
+        updateSpeed() {
+            const SpeedObservable=interval(3000);
+
+            SpeedObservable.pipe(
+                takeUntil(this.destinationReachedSubject)
+            )
+            .subscribe(() => {
+                this.CurrentSpeed= Math.floor(Math.random()*100);
+            })
+        }
 }

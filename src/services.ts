@@ -12,41 +12,27 @@ export function getTruck(registrationID: string) {
             .catch(error => console.error(error));
 }
 
-export function createTruckObservables() : Observable<Truck>[] {
-    let allTrucks: Observable<Truck>[] = [];
+export function createTruckObservables() : Observable<Truck[]> {
     
-    fetch(vehiclesURL).then(async (APIresponse) => {
-        if(!APIresponse.ok)
-            throw new Error("Vehicles fetch failed.");
-        else {
-            await APIresponse.json().then((trucksJSON) => 
-            {
-                for(const truckData of trucksJSON) {
-                        
-                        allTrucks.push(new Observable<Truck>((observer) => {
-                            observer.next(new Truck(
-                                truckData.id,
-                                truckData.RegistrationExpiryDate,
-                                truckData.Model,
-                                truckData.Capacity,
-                                truckData.Load,
-                                truckData.CurrentSpeed,
-                                truckData.GasLevel,
-                                truckData.Status,
-                                new google.maps.LatLng(
-                                  truckData.CurrentLocation.lat,
-                                  truckData.CurrentLocation.lng
-                                )));
+    return new Observable<Truck[]>((observer) => {
+        fetch(vehiclesURL)
+        .then((APIresponse) => {
+            if(!APIresponse.ok)
+                throw new Error("Vehicles fetch failed.");
+            else {
+                return APIresponse.json();
+            }
+        })
+        .then((data: Truck[]) => {
+            let niz: Truck[];
 
-                            observer.complete();
-                        }))
-                    }
-            });
-        }
+            
+            observer.next(data as Truck[]);
+            observer.complete();
+        })
+        .catch(err => observer.error(err));
     })
-    .catch(error=>console.error(error));
     
-    return allTrucks;
 }
 
 export function deleteContent(event: Event, className: string, host: HTMLElement) {
@@ -57,4 +43,17 @@ export function deleteContent(event: Event, className: string, host: HTMLElement
             host.removeChild(host.lastChild);
         }
     }
+}
+
+export function saveTruck(truck: Truck) {
+    fetch(`${vehiclesURL}/${truck.id}`, {
+        method: 'PUT',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(truck),
+    }).then(newTruckData => {
+        console.log("inside fetch");
+        truck.updateData(truck);
+    });
 }
