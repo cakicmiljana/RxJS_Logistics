@@ -1,4 +1,4 @@
-import { Observable, debounceTime, fromEvent, map, merge, mergeAll, mergeMap, takeUntil, tap } from "rxjs";
+import { Observable, debounceTime, forkJoin, fromEvent, map, merge, mergeAll, mergeMap, takeUntil, tap } from "rxjs";
 import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "../testFunctions/coordinates";
 import { createTruckObservables, deleteContent } from "./services";
@@ -55,11 +55,11 @@ mainDiv.appendChild(contentDiv);
 
 //const truckkk=new Truck("1",new Date("2025-05-14"),"1",1,1,1,1,"idle",new google.maps.LatLng( garageLocation),new google.maps.LatLng( garageLocation));
 
-let allTruck$ = createTruckObservables();
-
 let gasLevel$;
 let speed$;
 let location$;
+
+let allTruck$: Observable<Truck[]> = createTruckObservables();
 
 allTruck$.subscribe(trucks=>{
     for(let t of trucks) {
@@ -68,8 +68,11 @@ allTruck$.subscribe(trucks=>{
             new google.maps.LatLng(t.FinalDestination));
         
         truck.drawTruck(contentDiv);
-        truck.updateGasLevel();
-        truck.updateSpeed();
+        if(truck.Status=='inTransit') {
+            truck.updateGasLevel();
+            truck.updateSpeed();
+            truck.updateLocation();
+        }
     }
 });
 

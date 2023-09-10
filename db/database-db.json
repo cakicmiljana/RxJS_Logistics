@@ -12,6 +12,10 @@
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 23.9654
+      },
+      "FinalDestination": {
+        "lat": 44.1651,
+        "lng": 25.1235
       }
     },
     {
@@ -26,6 +30,10 @@
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
+      },
+      "FinalDestination": {
+        "lat": 42.1254,
+        "lng": 21.1568
       }
     }
   ],

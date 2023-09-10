@@ -24,9 +24,6 @@ export function createTruckObservables() : Observable<Truck[]> {
             }
         })
         .then((data: Truck[]) => {
-            let niz: Truck[];
-
-            
             observer.next(data as Truck[]);
             observer.complete();
         })

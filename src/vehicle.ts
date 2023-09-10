@@ -1,6 +1,6 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
-import { Observable, Subject, Subscription, interval, map, of, scan, take, takeUntil, tap } from "rxjs";
+import { Observable, Subject, Subscription, combineLatest, filter, interval, map, of, scan, take, takeUntil, tap } from "rxjs";
 import { createTruckObservables } from "./services";
 
 export enum VehicleStatus {
@@ -31,9 +31,9 @@ export class Truck implements Vehicle {
     CurrentLocation: google.maps.LatLng;
     FinalDestination: google.maps.LatLng;
 
-    private gasLevelSubject = new Subject<number>();
-    private locationSubject = new Subject<google.maps.LatLng>();
-    private speedSubject = new Subject<number>();
+    private gasLevel$ = new Observable<number>();
+    private location$ = new Observable();
+    private speed$ = new Observable<number>();
     private destinationReachedSubject = new Subject<void>();
 
     constructor(registration: string, expiryDate: Date, model: string, capacity: number, load:number,
@@ -208,25 +208,72 @@ export class Truck implements Vehicle {
         // }
 
         updateGasLevel() {
-            const gasLevelObservable=interval(3000);
+            this.gasLevel$=interval(2000);
 
-            gasLevelObservable.pipe(
-                takeUntil(this.destinationReachedSubject)
+            this.gasLevel$.pipe(
+                takeUntil(this.destinationReachedSubject),
+                map(() => {
+                    this.GasLevel-=1;
+                    console.log(this.id + " gas level: " + this.GasLevel);
+                })
             )
-            .subscribe(() => {
-                this.GasLevel-=1;
-            })
+            .subscribe()
         }
 
         
         updateSpeed() {
-            const SpeedObservable=interval(3000);
+            this.speed$=interval(4000);
 
-            SpeedObservable.pipe(
-                takeUntil(this.destinationReachedSubject)
+            this.speed$.pipe(
+                takeUntil(this.destinationReachedSubject),
+                map(() => {
+                    this.CurrentSpeed= Math.floor(Math.random()*100);
+                    console.log(this.id + " speed: " + this.CurrentSpeed);
+                })
             )
-            .subscribe(() => {
-                this.CurrentSpeed= Math.floor(Math.random()*100);
+            .subscribe()
+        }
+        
+        updateLocation() {
+            const stepSize=1000;
+
+            this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(100)]).pipe(
+                takeUntil(this.destinationReachedSubject),
+                filter(([currentSpeed, gasLevel]) => gasLevel>0),
+                map(([currentSpeed]) => {
+                    const metersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert speed to meters per second
+                    const latIncrement = (metersPerSecond*10000 / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lat() - this.CurrentLocation.lat());
+                    const lngIncrement = (metersPerSecond*10000 / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lng() - this.CurrentLocation.lng());
+                    
+                    const totalSteps=Math.ceil(google.maps.geometry.spherical.computeDistanceBetween(
+                        this.CurrentLocation,
+                        this.FinalDestination) / stepSize);
+                        
+                        //const intermediateLocations = [];
+                        let currentLocation=this.CurrentLocation;
+                        
+                        //for(let step=0; step<totalSteps; step++) 
+                        {
+                            const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
+                            currentLocation = newLocation;
+                            //intermediateLocations.push(newLocation);
+                            //console.log(this.id + " location: "  + newLocation);
+                        }
+                        
+                    //console.log(this.id + " locations: " + intermediateLocations);
+                    return currentLocation;
+                })
+            );
+            this.location$.subscribe((location: google.maps.LatLng) => {
+                this.CurrentLocation=location;
+                console.log(this.id + " location: "  + this.CurrentLocation);
+                if(Math.abs(this.CurrentLocation.lat()-this.FinalDestination.lat())<0.1 &&
+                (Math.abs(this.CurrentLocation.lng()-this.FinalDestination.lng())<0.1))
+                {
+                    console.log("final: " + this.CurrentLocation);
+                    this.destinationReachedSubject.next();
+                    console.log(this.id + " destination reached");
+                }
             })
         }
 }
