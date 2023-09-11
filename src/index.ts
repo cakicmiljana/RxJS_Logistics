@@ -71,7 +71,7 @@ allTruck$.subscribe(trucks=>{
         if(truck.Status=='inTransit') {
             truck.updateGasLevel();
             truck.updateSpeed();
-            truck.updateLocation();
+            //truck.updateLocation();
         }
     }
 });

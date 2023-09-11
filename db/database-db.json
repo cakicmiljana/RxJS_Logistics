@@ -25,15 +25,15 @@
       "Capacity": "29",
       "Load": "25",
       "CurrentSpeed": "50",
-      "GasLevel": "40",
+      "GasLevel": "10",
       "Status": "inTransit",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
       "FinalDestination": {
-        "lat": 42.1254,
-        "lng": 21.1568
+        "lat": 42.5254,
+        "lng": 21.6568
       }
     }
   ],

@@ -1,6 +1,6 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
-import { Observable, Subject, Subscription, combineLatest, filter, interval, map, of, scan, take, takeUntil, tap } from "rxjs";
+import { Observable, Subject, Subscription, combineLatest, filter, interval, map, of, scan, skipWhile, startWith, take, takeUntil, takeWhile, tap } from "rxjs";
 import { createTruckObservables } from "./services";
 
 export enum VehicleStatus {
@@ -51,7 +51,6 @@ export class Truck implements Vehicle {
         }
 
         updateData(newData: Partial<Truck>): void {
-            // Update individual properties as needed
             if (newData.hasOwnProperty('CurrentLocation')) {
               this.CurrentLocation = newData.CurrentLocation;
             }
@@ -152,43 +151,6 @@ export class Truck implements Vehicle {
                     
                 }));
         }
-
-        // simulateMovement(marker: google.maps.Marker) {
-        //     interval(1000).pipe(
-        //         map(() => {
-        //             const latValue=this.CurrentLocation.lat()+0.1;
-        //             const lngValue=this.CurrentLocation.lng()+0.1;
-        //             this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
-        //             //console.log(this.CurrentLocation.lat(), this.CurrentLocation.lng());
-
-        //             marker.setPosition(this.CurrentLocation);
-        //         }),
-        //         tap(() => {
-                    
-        //         })
-        //         ).subscribe();
-        // }
-
-        simulateSpeedChange() {
-            return interval(1000).pipe(
-                map((x) => {
-                    this.CurrentSpeed=x;
-                    console.log(x);
-                })
-            )
-        }
-
-        simulateGasLevelChange() {
-            const ga$=of(this.GasLevel);
-            console.log("gas is " + this.GasLevel);
-            return ga$.pipe(
-                
-                scan((acc, val) => {
-                    return acc-val;
-                })
-            ).subscribe(x => console.log(x));
-        }
-
         
         // static async showAllTrucksOnMap(vehicle$: Observable<Truck>, mapElement: HTMLDivElement) {
         //     const myMap = new google.maps.Map(mapElement, 
@@ -212,14 +174,18 @@ export class Truck implements Vehicle {
 
             this.gasLevel$.pipe(
                 takeUntil(this.destinationReachedSubject),
-                map(() => {
-                    this.GasLevel-=1;
-                    console.log(this.id + " gas level: " + this.GasLevel);
+                startWith(this.GasLevel),
+                scan((gasLevel) => gasLevel-1),
+                takeWhile((gasLevel) => gasLevel >= 0),
+                // skipWhile(gasLevel => gasLevel > 0),
+                tap((gasLevel) => {
+                    this.GasLevel = gasLevel;
+                    console.log(this.id + " gas level: " + gasLevel);
+                    //return this.GasLevel;
                 })
             )
             .subscribe()
         }
-
         
         updateSpeed() {
             this.speed$=interval(4000);
@@ -227,8 +193,9 @@ export class Truck implements Vehicle {
             this.speed$.pipe(
                 takeUntil(this.destinationReachedSubject),
                 map(() => {
-                    this.CurrentSpeed= Math.floor(Math.random()*100);
+                    this.CurrentSpeed = Math.floor(Math.random()*100);
                     console.log(this.id + " speed: " + this.CurrentSpeed);
+                    return this.CurrentSpeed;
                 })
             )
             .subscribe()
@@ -237,38 +204,34 @@ export class Truck implements Vehicle {
         updateLocation() {
             const stepSize=1000;
 
-            this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(100)]).pipe(
+            this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(1000)]).pipe(
                 takeUntil(this.destinationReachedSubject),
-                filter(([currentSpeed, gasLevel]) => gasLevel>0),
-                map(([currentSpeed]) => {
+                filter(([currentSpeed, gasLevel]) => gasLevel > 0),
+                takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
+                map(([currentSpeed, gasLevel]) => {
+                    console.log(this.id + " INNER gas level: " + this.GasLevel);
+
                     const metersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert speed to meters per second
-                    const latIncrement = (metersPerSecond*10000 / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lat() - this.CurrentLocation.lat());
-                    const lngIncrement = (metersPerSecond*10000 / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lng() - this.CurrentLocation.lng());
+                    const latIncrement = (metersPerSecond*(this.GasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lat() - this.CurrentLocation.lat());
+                    const lngIncrement = (metersPerSecond*(this.GasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lng() - this.CurrentLocation.lng());
                     
                     const totalSteps=Math.ceil(google.maps.geometry.spherical.computeDistanceBetween(
                         this.CurrentLocation,
                         this.FinalDestination) / stepSize);
                         
-                        //const intermediateLocations = [];
-                        let currentLocation=this.CurrentLocation;
-                        
-                        //for(let step=0; step<totalSteps; step++) 
-                        {
-                            const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
-                            currentLocation = newLocation;
-                            //intermediateLocations.push(newLocation);
-                            //console.log(this.id + " location: "  + newLocation);
-                        }
-                        
-                    //console.log(this.id + " locations: " + intermediateLocations);
+                    let currentLocation=this.CurrentLocation;
+                    
+                    const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
+                    currentLocation = newLocation;
+                    
                     return currentLocation;
                 })
             );
             this.location$.subscribe((location: google.maps.LatLng) => {
                 this.CurrentLocation=location;
                 console.log(this.id + " location: "  + this.CurrentLocation);
-                if(Math.abs(this.CurrentLocation.lat()-this.FinalDestination.lat())<0.1 &&
-                (Math.abs(this.CurrentLocation.lng()-this.FinalDestination.lng())<0.1))
+                if(Math.abs(this.CurrentLocation.lat()-this.FinalDestination.lat())<0.01 &&
+                (Math.abs(this.CurrentLocation.lng()-this.FinalDestination.lng())<0.01))
                 {
                     console.log("final: " + this.CurrentLocation);
                     this.destinationReachedSubject.next();
