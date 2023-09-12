@@ -12,13 +12,14 @@ html, body {
   padding: 10px;
   display: flex;
   flex-direction: row;
+  background-color: lightblue;
 }
 
 .menu-div {
   height: 100%;
   width: 30%;
   margin: 10px;
-  padding: 0;
+  padding: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -28,6 +29,7 @@ html, body {
   width: 100%;
   display: flex;
   flex-direction: row;
+  margin: 25px;
 }
 
 .map-div {
@@ -68,7 +70,61 @@ html, body {
   width: 350px;
 }
 
+.order-div {
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  padding: 20px;
+  align-items: center;
+  border: 1px solid black;
+  height: 130px;
+  width: 300px;
+}
+
+.driver-div {
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  padding: 20px;
+  align-items: center;
+  border: 1px solid black;
+  height: 140px;
+  width: 280px;
+}
+
+
+.newOrder-div {
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  padding: 10px;
+  align-items: center;
+  border: 1px solid black;
+  height: 40%;
+  width: 40%;
+}
+
 .contentItems-div {
   width: 100%;
   height: 100%;
+}
+
+.newOrder-button {
+  height: 15px;
+  width: 180px;
+  margin: 15px;
+  padding: 20px;
+}
+
+.newOrderDestination-div {
+  padding: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+input {
+  width: 50%;
+  margin: 5px;
 }

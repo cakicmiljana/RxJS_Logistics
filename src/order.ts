@@ -1,4 +1,4 @@
-import { sendOrderToServer } from "./services";
+import { updateOrderRequest } from "./services";
 
 export enum ShipmentStatus {
     pending="pending",
@@ -29,7 +29,7 @@ export class Order {
     placeNewOrder(id: number, status: 'pending' | 'shipped' | 'delivered', totalLoad: number,
             destination: google.maps.LatLng, assignedDriver: string, assignedVehicle: string) {
         const newOrder: Order = new Order(id, status, totalLoad, destination, assignedDriver, assignedVehicle);
-        sendOrderToServer(this);
+        updateOrderRequest(this);
     }
 
     updateOrderData(newOrderData: Partial<Order>): void {
@@ -48,5 +48,9 @@ export class Order {
         if(newOrderData.hasOwnProperty('AssignedTruckID')) {
             this.AssignedTruckID = newOrderData.AssignedTruckID;
         }
+    }
+
+    drawOrder(host: HTMLElement) {
+
     }
 }

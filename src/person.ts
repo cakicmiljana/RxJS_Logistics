@@ -7,7 +7,7 @@ export enum DriverStatus {
 }
 
 export interface Person {
-    IDNumber: string,
+    id: string,
     FullName: string,
     PhoneNumber: string,
     Email: string,
@@ -15,7 +15,7 @@ export interface Person {
 }
 
 export class Driver implements Person {
-    IDNumber: string;
+    id: string;
     FullName: string;
     PhoneNumber: string;
     Email: string;
@@ -23,12 +23,12 @@ export class Driver implements Person {
     // Address: string;
     // Salary: number;
     // LicenceNumber: string;
-    Status: DriverStatus;
+    Status: 'available' | 'onRoad' | 'onBreak';
     AssignedVehicle?: string;
 
     constructor(id: string, name: string, phone: string, 
-        email: string, dateOfBirth: Date, status: DriverStatus, vehicleID?: string) {
-            this.IDNumber = id;
+        email: string, dateOfBirth: Date, status: 'available' | 'onRoad' | 'onBreak', vehicleID?: string) {
+            this.id = id;
             this.FullName=name;
             this.PhoneNumber=phone;
             this.Email=email;
@@ -41,5 +41,26 @@ export class Driver implements Person {
     async assignShipment(shipmentID: string) {
         await fetch(ordersURL + shipmentID);
         await fetch(driversURL);
+    }
+
+    updateDriverData(newData: Partial<Driver>): void {
+        if (newData.hasOwnProperty('id')) {
+          this.id = newData.id;
+        }
+        if (newData.hasOwnProperty('FullName')) {
+          this.FullName = newData.FullName;
+        }
+        if (newData.hasOwnProperty('DateOfBirth')) {
+          this.DateOfBirth = newData.DateOfBirth;
+        }
+        if (newData.hasOwnProperty('Email')) {
+          this.Email = newData.Email;
+        }
+        if (newData.hasOwnProperty('PhoneNumber')) {
+          this.PhoneNumber = newData.PhoneNumber;
+        }
+        if (newData.hasOwnProperty('Status')) {
+          this.Status = newData.Status;
+        }
     }
 }

@@ -1,7 +1,7 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
 import { Observable, Subject, Subscription, combineLatest, endWith, filter, interval, map, of, scan, skipUntil, skipWhile, startWith, take, takeUntil, takeWhile, tap } from "rxjs";
-import { getTrucksFromServer, sendTruckToServer } from "./services";
+import { getTrucksFromServer, updateTruckRequest } from "./services";
 
 export enum VehicleStatus {
     'idle'='idle',
@@ -68,64 +68,64 @@ export class Truck implements Vehicle {
             }
         }
         
-        drawTruck(host: HTMLElement) {
+        // drawTruck(host: HTMLElement) {
             
-            const truckDiv=document.createElement("div");
-            truckDiv.classList.add("truck-div");
-            host.appendChild(truckDiv);
+        //     const truckDiv=document.createElement("div");
+        //     truckDiv.classList.add("truck-div");
+        //     host.appendChild(truckDiv);
 
-            const truckName=document.createElement("label");
-            truckName.classList.add("label");
-            truckName.textContent=this.id;
-            truckDiv.appendChild(truckName);
+        //     const truckName=document.createElement("label");
+        //     truckName.classList.add("label");
+        //     truckName.textContent=this.id;
+        //     truckDiv.appendChild(truckName);
             
-            const truckModel=document.createElement("label");
-            truckModel.classList.add("label");
-            truckModel.textContent=this.Model;
-            truckDiv.appendChild(truckModel);
+        //     const truckModel=document.createElement("label");
+        //     truckModel.classList.add("label");
+        //     truckModel.textContent=this.Model;
+        //     truckDiv.appendChild(truckModel);
 
-            const currentLocationLabel=document.createElement("label");
-            currentLocationLabel.classList.add("label");
-            currentLocationLabel.textContent= "CURRENT LOCATION: " + this.CurrentLocation.toString();
-            truckDiv.appendChild(currentLocationLabel);
+        //     const currentLocationLabel=document.createElement("label");
+        //     currentLocationLabel.classList.add("label");
+        //     currentLocationLabel.textContent= "CURRENT LOCATION: " + this.CurrentLocation.toString();
+        //     truckDiv.appendChild(currentLocationLabel);
             
-            const destinationLabel=document.createElement("label");
-            destinationLabel.classList.add("label");
-            destinationLabel.textContent= "DESTINATION: " + this.FinalDestination.toString();
-            truckDiv.appendChild(destinationLabel);
+        //     const destinationLabel=document.createElement("label");
+        //     destinationLabel.classList.add("label");
+        //     destinationLabel.textContent= "DESTINATION: " + this.FinalDestination.toString();
+        //     truckDiv.appendChild(destinationLabel);
 
-            const speedLabel=document.createElement("label");
-            speedLabel.classList.add("label");
-            speedLabel.textContent= "CURRENT SPEED: " + this.CurrentSpeed.toString() + "km/s";
-            truckDiv.appendChild(speedLabel);
+        //     const speedLabel=document.createElement("label");
+        //     speedLabel.classList.add("label");
+        //     speedLabel.textContent= "CURRENT SPEED: " + this.CurrentSpeed.toString() + "km/s";
+        //     truckDiv.appendChild(speedLabel);
 
-            const gasLevelLabel=document.createElement("label");
-            gasLevelLabel.classList.add("label");
-            gasLevelLabel.textContent="GAS LEVEL: " + this.GasLevel.toString() + "%";
-            truckDiv.appendChild(gasLevelLabel);
+        //     const gasLevelLabel=document.createElement("label");
+        //     gasLevelLabel.classList.add("label");
+        //     gasLevelLabel.textContent="GAS LEVEL: " + this.GasLevel.toString() + "%";
+        //     truckDiv.appendChild(gasLevelLabel);
 
-            if(this.Status=='inTransit') {
-                const trackButton=document.createElement("input");
-                trackButton.type="button";
-                trackButton.value="TRACK LOCATION";
-                truckDiv.appendChild(trackButton);
+        //     if(this.Status=='inTransit') {
+        //         const trackButton=document.createElement("input");
+        //         trackButton.type="button";
+        //         trackButton.value="TRACK LOCATION";
+        //         truckDiv.appendChild(trackButton);
                 
-                trackButton.addEventListener('click', (event) => 
-                {
-                    console.log("target ", event.target);
-                    while(host.childNodes.length>1){
-                        if(host.firstChild!=event.target)
-                            host.removeChild(host.firstChild);
-                        else host.removeChild(host.lastChild);
-                    }
+        //         trackButton.addEventListener('click', (event) => 
+        //         {
+        //             console.log("target ", event.target);
+        //             while(host.childNodes.length>1){
+        //                 if(host.firstChild!=event.target)
+        //                     host.removeChild(host.firstChild);
+        //                 else host.removeChild(host.lastChild);
+        //             }
 
-                    this.trackTruckLocation(this.id, host);
-                })
-            }
+        //             this.trackTruckLocation(this.id, host);
+        //         })
+        //     }
 
-            console.log("div: ", truckDiv);
+        //     console.log("div: ", truckDiv);
 
-        }
+        // }
 
         async trackTruckLocation(ID: string, host: HTMLElement) {
 
@@ -233,7 +233,7 @@ export class Truck implements Vehicle {
                     this.CurrentLocation=new google.maps.LatLng(garageLocation);
                     this.FinalDestination= new google.maps.LatLng(garageLocation);
                     this.CurrentSpeed=0;
-                    sendTruckToServer(this);
+                    updateTruckRequest(this);
                 }
             })
         }

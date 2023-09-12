@@ -1,127 +1,53 @@
 import { Observable, debounceTime, forkJoin, fromEvent, map, merge, mergeAll, mergeMap, takeUntil, tap } from "rxjs";
 import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "../testFunctions/coordinates";
-import { getTrucksFromServer, deleteContent, sendTruckToServer } from "./services";
-import { Person } from "./person";
+import { getTrucksFromServer, deleteContent, updateTruckRequest, getOrdersFromServer, getDriversFromServer } from "./services";
+import { Driver, Person } from "./person";
 import { Order } from "./order";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 import { observableToBeFn } from "rxjs/internal/testing/TestScheduler";
+import { contentDiv, drawDrivers, drawOrder, drawOrders, drawTruck, drawTrucks, driversDiv, initializePage, ordersDiv, trucksDiv } from "./DOMstructure";
 
-// glavni container
-const mainDiv = document.createElement("div");
-mainDiv.classList.add("main-div");
-mainDiv.id="main";
-document.body.appendChild(mainDiv);
+initializePage();
 
-// meni
-const menuDiv = document.createElement("div");
-menuDiv.classList.add("menu-div");
-mainDiv.appendChild(menuDiv);
+let allTrucks: Array<Truck>=[];
+let allOrders: Array<Order>=[];
+let allDrivers: Array<Driver>=[];
 
-const menuH=document.createElement("h2");
-menuH.classList.add("menu-h");
-menuH.textContent="MENU";
-menuH.style.marginBottom="40px";
-menuDiv.appendChild(menuH);
+const truck$: Observable<Truck[]> = getTrucksFromServer();
+const order$: Observable<Order[]> = getOrdersFromServer();  
+const driver$: Observable<Driver[]> = getDriversFromServer();
 
-// podaci o kamionima
-const trucksDiv=document.createElement("div");
-trucksDiv.classList.add("trucks-div");
-trucksDiv.textContent="TRUCKS";
-menuDiv.appendChild(trucksDiv);
-
-// podaci o vozacima
-const driversDiv=document.createElement("div");
-driversDiv.classList.add("drivers-div");
-driversDiv.textContent="DRIVERS";
-menuDiv.appendChild(driversDiv);
-
-// podaci o turama
-const ordersDiv=document.createElement("div");
-ordersDiv.classList.add("orders-div");
-ordersDiv.textContent="ORDERS";
-menuDiv.appendChild(ordersDiv);
-
-// content
-const contentDiv = document.createElement("div");
-contentDiv.classList.add("content-div");
-mainDiv.appendChild(contentDiv);
-
-// mapa
-// const mapDiv=document.createElement("div");
-// mapDiv.classList.add("map-div");
-// mapDiv.id="map";
-// contentDiv.appendChild(mapDiv);
-
-//const truckkk=new Truck("1",new Date("2025-05-14"),"1",1,1,1,1,"idle",new google.maps.LatLng( garageLocation),new google.maps.LatLng( garageLocation));
-
-let gasLevel$;
-let speed$;
-let location$;
-
-let allTruck$: Observable<Truck[]> = getTrucksFromServer();
-
-allTruck$.subscribe(trucks=>{
-    for(let t of trucks) {
-        const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
-            t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
-            new google.maps.LatLng(t.FinalDestination));
-        
-        truck.drawTruck(contentDiv);
-        if(truck.Status=='inTransit') {
-            truck.updateGasLevel();
-            truck.updateSpeed();
-            truck.updateLocation();
-            //saveTruck(truck);
-        }
-    }
+truck$.subscribe(truck => {
+    allTrucks=truck;
 });
 
+driver$.subscribe(drivers => {
+    allDrivers=drivers;
+})
 
+order$.subscribe(orders=>{
+    allOrders=orders;
+});
 
-// .subscribe((trucks) => {
-//     console.log(trucks);
-//     trucks.forEach(truck => {
-//         console.log(truck);
-//         truck.drawTruck(contentDiv);
-//     });
-// });
-    
-// (async function initMap() {
-//     const myMap = new google.maps.Map(mapDiv, 
-//     {
-//         center: garageLocation,
-//         zoom: 7
-//     });
-// })();
-
-
-// trucksDiv.onclick = async (event) => {
-//     event.preventDefault();
-
-//     deleteContent(event, 'trucks-div', contentDiv);
-    
-//     allTruck$.subscribe(trucks=>{
-//         for(let t of trucks) {
-//             const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
-//                 t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
-//                 new google.maps.LatLng(t.FinalDestination));
-            
-//             truck.drawTruck(contentDiv);
-//         }
-//     });
-// }
-
-driversDiv.onclick = async (event) => {
+trucksDiv.addEventListener('click', event => {
     event.preventDefault();
+    deleteContent(event, 'trucks-div', contentDiv);
+    
+    drawTrucks(allTrucks, contentDiv);
+})
+    
 
+driversDiv.addEventListener('click', event => {
+    event.preventDefault();
     deleteContent(event, 'drivers-div', contentDiv);
-}
 
-ordersDiv.onclick = async (event) => {
+    drawDrivers(allDrivers, contentDiv);
+})
+
+ordersDiv.addEventListener("click", async (event) => {
     event.preventDefault();
-
-
-
     deleteContent(event, 'orders-div', contentDiv);
-}
+
+    drawOrders(allOrders, contentDiv);
+})
