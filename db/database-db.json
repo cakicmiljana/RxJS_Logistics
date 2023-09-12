@@ -14,26 +14,55 @@
         "lng": 23.9654
       },
       "FinalDestination": {
-        "lat": 44.1651,
-        "lng": 25.1235
+        "lat": 42.9977,
+        "lng": 23.9654
       }
     },
     {
+      "gasLevel$": {
+        "source": {
+          "source": {
+            "source": {
+              "source": {
+                "source": {}
+              }
+            }
+          }
+        }
+      },
+      "location$": {
+        "source": {
+          "source": {
+            "source": {}
+          }
+        }
+      },
+      "speed$": {
+        "source": {}
+      },
+      "destinationReachedSubject": {
+        "closed": false,
+        "currentObservers": null,
+        "observers": [],
+        "isStopped": false,
+        "hasError": false,
+        "thrownError": null
+      },
       "id": "LE003AA",
       "RegistrationExpiryDate": "2024-11-24",
       "Model": "G67",
       "Capacity": "29",
       "Load": "25",
-      "CurrentSpeed": "50",
-      "GasLevel": "10",
-      "Status": "inTransit",
+      "CurrentSpeed": 26,
+      "GasLevel": 77,
+      "Status": "idle",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
       "FinalDestination": {
-        "lat": 42.5254,
-        "lng": 21.6568
+        "lat": 42.9977,
+        "lng": 21.9654
       }
     }
   ],

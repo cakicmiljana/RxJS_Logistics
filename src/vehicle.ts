@@ -1,7 +1,7 @@
 import { Coordinates } from "../testFunctions/coordinates";
 import { garageLocation, vehiclesURL } from "../config";
-import { Observable, Subject, Subscription, combineLatest, filter, interval, map, of, scan, skipWhile, startWith, take, takeUntil, takeWhile, tap } from "rxjs";
-import { createTruckObservables } from "./services";
+import { Observable, Subject, Subscription, combineLatest, endWith, filter, interval, map, of, scan, skipUntil, skipWhile, startWith, take, takeUntil, takeWhile, tap } from "rxjs";
+import { getTrucksFromServer, sendTruckToServer } from "./services";
 
 export enum VehicleStatus {
     'idle'='idle',
@@ -50,7 +50,7 @@ export class Truck implements Vehicle {
             this.FinalDestination=finalDestination;
         }
 
-        updateData(newData: Partial<Truck>): void {
+        updateTruckData(newData: Partial<Truck>): void {
             if (newData.hasOwnProperty('CurrentLocation')) {
               this.CurrentLocation = newData.CurrentLocation;
             }
@@ -60,8 +60,13 @@ export class Truck implements Vehicle {
             if (newData.hasOwnProperty('GasLevel')) {
               this.GasLevel = newData.GasLevel;
             }
-            // Update other properties in a similar manner
-          }
+            if (newData.hasOwnProperty('Status')) {
+              this.Status = newData.Status;
+            }
+            if (newData.hasOwnProperty('FinalDestination')) {
+              this.FinalDestination = newData.FinalDestination;
+            }
+        }
         
         drawTruck(host: HTMLElement) {
             
@@ -105,7 +110,7 @@ export class Truck implements Vehicle {
                 trackButton.value="TRACK LOCATION";
                 truckDiv.appendChild(trackButton);
                 
-                truckDiv.addEventListener('click', (event) => 
+                trackButton.addEventListener('click', (event) => 
                 {
                     console.log("target ", event.target);
                     while(host.childNodes.length>1){
@@ -134,22 +139,7 @@ export class Truck implements Vehicle {
                 map: truckOnMap
             });
 
-            this.simulateMovement().subscribe(newLocation => marker.setPosition(newLocation));
-        }
-
-        simulateMovement()  {
-            return interval(1000).pipe(
-                map(() => {
-                    console.log(this);
-                    const latValue=this.CurrentLocation.lat()+0.1;
-                    const lngValue=this.CurrentLocation.lng()+0.1;
-                    this.CurrentLocation=new google.maps.LatLng(latValue, lngValue);
-
-                    return this.CurrentLocation;
-                }),
-                tap(() => {
-                    
-                }));
+            //this.simulateMovement().subscribe(newLocation => marker.setPosition(newLocation));
         }
         
         // static async showAllTrucksOnMap(vehicle$: Observable<Truck>, mapElement: HTMLDivElement) {
@@ -172,33 +162,38 @@ export class Truck implements Vehicle {
         updateGasLevel() {
             this.gasLevel$=interval(2000);
 
-            this.gasLevel$.pipe(
+            this.gasLevel$ = this.gasLevel$.pipe(
                 takeUntil(this.destinationReachedSubject),
                 startWith(this.GasLevel),
-                scan((gasLevel) => gasLevel-1),
+                scan((gasLevel) => gasLevel-1, this.GasLevel),
                 takeWhile((gasLevel) => gasLevel >= 0),
                 // skipWhile(gasLevel => gasLevel > 0),
-                tap((gasLevel) => {
+                tap(gasLevel => {
                     this.GasLevel = gasLevel;
                     console.log(this.id + " gas level: " + gasLevel);
-                    //return this.GasLevel;
                 })
-            )
-            .subscribe()
+            );
+                
+            // .subscribe(gasLevel => 
+            //     console.log(this.id + " gas level: " + gasLevel))
         }
         
         updateSpeed() {
             this.speed$=interval(4000);
 
-            this.speed$.pipe(
+            this.speed$ = this.speed$.pipe(
                 takeUntil(this.destinationReachedSubject),
-                map(() => {
-                    this.CurrentSpeed = Math.floor(Math.random()*100);
-                    console.log(this.id + " speed: " + this.CurrentSpeed);
-                    return this.CurrentSpeed;
-                })
-            )
-            .subscribe()
+                skipUntil(this.gasLevel$),
+                map((currentSpeed) => {
+                    currentSpeed = Math.floor(Math.random()*100);
+                    return currentSpeed;
+                }),
+                tap( currentSpeed => {
+                    this.CurrentSpeed = currentSpeed;
+                    console.log(this.id + " speed: " + currentSpeed);
+                }),
+                endWith(0)
+            );
         }
         
         updateLocation() {
@@ -207,35 +202,38 @@ export class Truck implements Vehicle {
             this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(1000)]).pipe(
                 takeUntil(this.destinationReachedSubject),
                 filter(([currentSpeed, gasLevel]) => gasLevel > 0),
-                takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
+                //takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
                 map(([currentSpeed, gasLevel]) => {
-                    console.log(this.id + " INNER gas level: " + this.GasLevel);
+                    //console.log(this.id + " INNER gas level: " + gasLevel);
 
                     const metersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert speed to meters per second
-                    const latIncrement = (metersPerSecond*(this.GasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lat() - this.CurrentLocation.lat());
-                    const lngIncrement = (metersPerSecond*(this.GasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) * (this.FinalDestination.lng() - this.CurrentLocation.lng());
-                    
-                    const totalSteps=Math.ceil(google.maps.geometry.spherical.computeDistanceBetween(
-                        this.CurrentLocation,
-                        this.FinalDestination) / stepSize);
+                    const latIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
+                    * (this.FinalDestination.lat() - this.CurrentLocation.lat());
+                    const lngIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
+                    * (this.FinalDestination.lng() - this.CurrentLocation.lng());
                         
                     let currentLocation=this.CurrentLocation;
                     
                     const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
                     currentLocation = newLocation;
-                    
+
                     return currentLocation;
                 })
             );
             this.location$.subscribe((location: google.maps.LatLng) => {
                 this.CurrentLocation=location;
                 console.log(this.id + " location: "  + this.CurrentLocation);
-                if(Math.abs(this.CurrentLocation.lat()-this.FinalDestination.lat())<0.01 &&
-                (Math.abs(this.CurrentLocation.lng()-this.FinalDestination.lng())<0.01))
+                if(Math.abs(location.lat()-this.FinalDestination.lat())<0.01 &&
+                (Math.abs(location.lng()-this.FinalDestination.lng())<0.01))
                 {
-                    console.log("final: " + this.CurrentLocation);
+                    console.log("final: " + location);
                     this.destinationReachedSubject.next();
-                    console.log(this.id + " destination reached");
+                    console.log(this.id + " destination reached.");
+                    this.Status='idle';
+                    this.CurrentLocation=new google.maps.LatLng(garageLocation);
+                    this.FinalDestination= new google.maps.LatLng(garageLocation);
+                    this.CurrentSpeed=0;
+                    sendTruckToServer(this);
                 }
             })
         }

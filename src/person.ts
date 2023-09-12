@@ -1,4 +1,4 @@
-import { driversURL, shipmentsURL } from "../config";
+import { driversURL, ordersURL } from "../config";
 
 export enum DriverStatus {
     'available',
@@ -39,7 +39,7 @@ export class Driver implements Person {
         }
 
     async assignShipment(shipmentID: string) {
-        await fetch(shipmentsURL + shipmentID);
+        await fetch(ordersURL + shipmentID);
         await fetch(driversURL);
     }
 }

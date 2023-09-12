@@ -1,9 +1,9 @@
 import { Observable, debounceTime, forkJoin, fromEvent, map, merge, mergeAll, mergeMap, takeUntil, tap } from "rxjs";
 import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "../testFunctions/coordinates";
-import { createTruckObservables, deleteContent } from "./services";
+import { getTrucksFromServer, deleteContent, sendTruckToServer } from "./services";
 import { Person } from "./person";
-import { Shipment } from "./shipment";
+import { Order } from "./order";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 import { observableToBeFn } from "rxjs/internal/testing/TestScheduler";
 
@@ -37,10 +37,10 @@ driversDiv.textContent="DRIVERS";
 menuDiv.appendChild(driversDiv);
 
 // podaci o turama
-const bookingsDiv=document.createElement("div");
-bookingsDiv.classList.add("bookings-div");
-bookingsDiv.textContent="BOOKINGS";
-menuDiv.appendChild(bookingsDiv);
+const ordersDiv=document.createElement("div");
+ordersDiv.classList.add("orders-div");
+ordersDiv.textContent="ORDERS";
+menuDiv.appendChild(ordersDiv);
 
 // content
 const contentDiv = document.createElement("div");
@@ -59,7 +59,7 @@ let gasLevel$;
 let speed$;
 let location$;
 
-let allTruck$: Observable<Truck[]> = createTruckObservables();
+let allTruck$: Observable<Truck[]> = getTrucksFromServer();
 
 allTruck$.subscribe(trucks=>{
     for(let t of trucks) {
@@ -71,7 +71,8 @@ allTruck$.subscribe(trucks=>{
         if(truck.Status=='inTransit') {
             truck.updateGasLevel();
             truck.updateSpeed();
-            //truck.updateLocation();
+            truck.updateLocation();
+            //saveTruck(truck);
         }
     }
 });
@@ -117,8 +118,10 @@ driversDiv.onclick = async (event) => {
     deleteContent(event, 'drivers-div', contentDiv);
 }
 
-bookingsDiv.onclick = async (event) => {
+ordersDiv.onclick = async (event) => {
     event.preventDefault();
 
-    deleteContent(event, 'bookings-div', contentDiv);
+
+
+    deleteContent(event, 'orders-div', contentDiv);
 }
