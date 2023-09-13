@@ -1,7 +1,8 @@
+import { allDrivers, allTrucks } from ".";
 import { garageLocation } from "../config";
 import { Order } from "./order";
 import { Driver } from "./person";
-import { newOrderRequest, updateOrderRequest } from "./services";
+import { newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
 
 export const mainDiv = document.createElement("div");
@@ -50,19 +51,6 @@ export function initializePage() {
     mapDiv.classList.add("map-div");
     mapDiv.id="map";
     contentDiv.appendChild(mapDiv);
-
-    (async function initMap() {
-        const myMap = new google.maps.Map(mapDiv, 
-        {
-            center: garageLocation,
-            zoom: 7
-        });
-
-        const marker = new google.maps.Marker({
-            position: garageLocation,
-            map: myMap
-        });
-    })();
 }
 
 export function drawTruck(truck: Truck, host: HTMLElement) {
@@ -125,12 +113,16 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
 }
 
 export function drawTrucks(trucks: Truck[], host: HTMLElement) {
+    const trucksContainer = document.createElement("div");
+    trucksContainer.classList.add("container-div");
+    host.appendChild(trucksContainer);
+
     for(let t of trucks) {
         const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
             t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
             new google.maps.LatLng(t.FinalDestination));
         
-        drawTruck(truck, host);
+        drawTruck(truck, trucksContainer);
         if(truck.Status=='inTransit') {
             truck.updateGasLevel();
             truck.updateSpeed();
@@ -173,13 +165,20 @@ export function drawOrder(order: Order, host: HTMLElement) {
         
         trackButton.addEventListener('click', (event) => 
         {
-            console.log("target ", event.target);
-            while(host.childNodes.length>1){
-                if(host.firstChild!=event.target)
-                    host.removeChild(host.firstChild);
-                else host.removeChild(host.lastChild);
+            
+        })
+    }
+    else if(order.Status=='pending') {
+        const shipButton=document.createElement("input");
+        shipButton.type="button";
+        shipButton.value="SHIP ORDER";
+        orderDiv.appendChild(shipButton);
+        
+        shipButton.addEventListener('click', (event) => 
+        {
+            if(order.Status=='pending') {
+                
             }
-
         })
     }
 
@@ -193,7 +192,6 @@ export function drawOrders(orders: Order[], host: HTMLElement) {
     host.appendChild(newOrderDiv);
     
     const totalLoadDiv=document.createElement("div");
-    //totalLoadDiv.classList.add("")
     newOrderDiv.appendChild(totalLoadDiv);
 
     const totalLoadLabel=document.createElement("label");
@@ -231,12 +229,15 @@ export function drawOrders(orders: Order[], host: HTMLElement) {
     newOrderButton.value="PLACE NEW ORDER";
     newOrderDiv.appendChild(newOrderButton);
     
+    const ordersContainer=document.createElement("div");
+    ordersContainer.classList.add("container-div");
+    host.appendChild(ordersContainer);
     
     for(let o of orders) {
         const order=new Order(o.id, o.Status, o.TotalLoad, new google.maps.LatLng(o.Destination), 
         o.AssignedDriverID, o.AssignedTruckID);
 
-        drawOrder(order, host);
+        drawOrder(order, ordersContainer);
     }
 
     newOrderButton.addEventListener('click', event => {
@@ -282,7 +283,7 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
     
         const assignedTruckLabel=document.createElement("label");
         assignedTruckLabel.classList.add("label");
-        assignedTruckLabel.textContent= "ASSIGNED TRUCK: " + driver.AssignedVehicle;
+        assignedTruckLabel.textContent= "ASSIGNED TRUCK: " + driver.AssignedVehicleID;
         driverDiv.appendChild(assignedTruckLabel);
 
         const trackButton=document.createElement("input");
@@ -305,10 +306,15 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
 }
 
 export function drawDrivers(drivers: Driver[], host: HTMLElement) {
+    const driversContainer = document.createElement("div");
+    driversContainer.classList.add("container-div");
+    host.appendChild(driversContainer);
+
     for(let d of drivers) {
         const driver=new Driver(d.id, d.FullName, d.PhoneNumber, d.Email, d.DateOfBirth, 
-        d.Status, d.AssignedVehicle);
+        d.Status, d.AssignedVehicleID);
 
-        drawDriver(driver, host);
+        drawDriver(driver, driversContainer);
     }
 }
+

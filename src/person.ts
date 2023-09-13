@@ -24,7 +24,7 @@ export class Driver implements Person {
     // Salary: number;
     // LicenceNumber: string;
     Status: 'available' | 'onRoad' | 'onBreak';
-    AssignedVehicle?: string;
+    AssignedVehicleID?: string;
 
     constructor(id: string, name: string, phone: string, 
         email: string, dateOfBirth: Date, status: 'available' | 'onRoad' | 'onBreak', vehicleID?: string) {
@@ -35,7 +35,7 @@ export class Driver implements Person {
             this.DateOfBirth=dateOfBirth;
             this.Status=status;
             if(vehicleID)
-                this.AssignedVehicle=vehicleID;
+                this.AssignedVehicleID=vehicleID;
         }
 
     async assignShipment(shipmentID: string) {

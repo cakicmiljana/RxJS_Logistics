@@ -1,4 +1,6 @@
-import { updateOrderRequest } from "./services";
+import { Driver } from "./person";
+import { updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
+import { Truck } from "./vehicle";
 
 export enum ShipmentStatus {
     pending="pending",
@@ -27,7 +29,8 @@ export class Order {
     }
 
     placeNewOrder(id: number, status: 'pending' | 'shipped' | 'delivered', totalLoad: number,
-            destination: google.maps.LatLng, assignedDriver: string, assignedVehicle: string) {
+            destination: google.maps.LatLng, assignedDriver: string, assignedVehicle: string) 
+    {
         const newOrder: Order = new Order(id, status, totalLoad, destination, assignedDriver, assignedVehicle);
         updateOrderRequest(this);
     }
@@ -50,7 +53,22 @@ export class Order {
         }
     }
 
-    drawOrder(host: HTMLElement) {
+    
+    shipOrder(assignedTruck: Truck, assignedDriver: Driver) {
 
+        assignedTruck.Status='inTransit';
+        assignedTruck.Load=this.TotalLoad;
+        assignedTruck.FinalDestination=new google.maps.LatLng(this.Destination);
+
+        assignedDriver.Status='onRoad';
+        assignedDriver.AssignedVehicleID=assignedTruck.id;
+
+        this.Status='shipped';
+        this.AssignedTruckID=assignedTruck.id;
+        this.AssignedDriverID=assignedDriver.id;
+
+        updateTruckRequest(assignedTruck);
+        updateDriverRequest(assignedDriver);
+        updateOrderRequest(this);
     }
 }
