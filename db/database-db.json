@@ -5,49 +5,20 @@
       "RegistrationExpiryDate": "2025-05-14",
       "Model": "BMW",
       "Capacity": "21",
-      "Load": "18",
-      "CurrentSpeed": "110",
-      "GasLevel": "70",
-      "Status": "idle",
+      "Load": 20,
+      "CurrentSpeed": 3,
+      "GasLevel": 28,
+      "Status": "inTransit",
       "CurrentLocation": {
         "lat": 42.9977,
-        "lng": 23.9654
+        "lng": 21.9654
       },
       "FinalDestination": {
         "lat": 42.9977,
-        "lng": 23.9654
+        "lng": 21.9654
       }
     },
     {
-      "gasLevel$": {
-        "source": {
-          "source": {
-            "source": {
-              "source": {
-                "source": {}
-              }
-            }
-          }
-        }
-      },
-      "location$": {
-        "source": {
-          "source": {
-            "source": {}
-          }
-        }
-      },
-      "speed$": {
-        "source": {}
-      },
-      "destinationReachedSubject": {
-        "closed": false,
-        "currentObservers": null,
-        "observers": [],
-        "isStopped": false,
-        "hasError": false,
-        "thrownError": null
-      },
       "id": "LE003AA",
       "RegistrationExpiryDate": "2024-11-24",
       "Model": "G67",
@@ -73,8 +44,8 @@
       "PhoneNumber": "0645998739",
       "Email": "igormark@gmail.com",
       "DateOfBirth": "1978-12-10",
-      "Status": "available",
-      "AssignedVehicle": ""
+      "Status": "onRoad",
+      "AssignedVehicleID": "LE536VA"
     },
     {
       "id": "02059991349256",
@@ -82,14 +53,14 @@
       "PhoneNumber": "0661148966",
       "Email": "miticzoran@gmail.com",
       "DateOfBirth": "1999-05-02",
-      "Status": "onRoad",
-      "AssignedVehicle": "LE003AA"
+      "Status": "available",
+      "AssignedVehicleID": ""
     }
   ],
   "orders": [
     {
       "id": "1",
-      "Status": "shipped",
+      "Status": "delivered",
       "TotalLoad": "17",
       "Destination": {
         "lat": 44.9977,
@@ -100,14 +71,25 @@
     },
     {
       "id": 2,
-      "Status": "pending",
+      "Status": "shipped",
       "TotalLoad": 25,
       "Destination": {
         "lat": 45.1656,
         "lng": 19.8946
       },
-      "AssignedDriverID": "",
-      "AssignedTruckID": ""
+      "AssignedDriverID": "121097831234",
+      "AssignedTruckID": "LE536VA"
+    },
+    {
+      "id": 3,
+      "Status": "pending",
+      "TotalLoad": 20,
+      "Destination": {
+        "lat": 45.6452,
+        "lng": 21.8457
+      },
+      "AssignedDriverID": "121097831234",
+      "AssignedTruckID": "LE536VA"
     }
   ]
 }

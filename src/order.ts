@@ -17,15 +17,26 @@ export class Order {
     AssignedDriverID: string;
     AssignedTruckID: string;
 
-    constructor(id: number, status: 'pending' | 'shipped' | 'delivered', totalLoad: number,
-        destination: google.maps.LatLng, assignedDriver: string, assignedVehicle: string) {
-            this.id=id;
-            this.Status=status;
-            this.TotalLoad=totalLoad;
-            // this.DeliveryDate=deliveryDate;
-            this.Destination=destination;
-            this.AssignedDriverID=assignedDriver;
-            this.AssignedTruckID=assignedVehicle;
+    constructor(idOrOrderData: number | Order, status?: 'pending' | 'shipped' | 'delivered', totalLoad?: number,
+        destination?: google.maps.LatLng, assignedDriver?: string, assignedVehicle?: string) {
+            
+            if(typeof idOrOrderData === 'number') {
+                this.id=idOrOrderData;
+                this.Status=status;
+                this.TotalLoad=totalLoad;
+                this.Destination=destination;
+                this.AssignedDriverID=assignedDriver;
+                this.AssignedTruckID=assignedVehicle;
+            }
+            else {
+                    this.id=idOrOrderData.id;
+                    this.Status=idOrOrderData.Status;
+                    this.TotalLoad=idOrOrderData.TotalLoad;
+                    this.Destination=new google.maps.LatLng(idOrOrderData.Destination);
+                    this.AssignedDriverID=idOrOrderData.AssignedDriverID;
+                    this.AssignedTruckID=idOrOrderData.AssignedTruckID;
+            }
+            
     }
 
     placeNewOrder(id: number, status: 'pending' | 'shipped' | 'delivered', totalLoad: number,

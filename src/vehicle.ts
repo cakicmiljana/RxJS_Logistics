@@ -32,23 +32,22 @@ export class Truck implements Vehicle {
     CurrentLocation: google.maps.LatLng;
     FinalDestination: google.maps.LatLng;
 
-    private gasLevel$ = new Observable<number>();
-    private location$ = new Observable();
-    private speed$ = new Observable<number>();
-    private destinationReachedSubject = new Subject<void>();
+    // private gasLevel$ = new Observable<number>();
+    // private location$ = new Observable();
+    // private speed$ = new Observable<number>();
+    // private destinationReachedSubject = new Subject<void>();
 
-    constructor(registration: string, expiryDate: Date, model: string, capacity: number, load:number,
-        currSpeed: number, gasLevel: number, status:'idle' | 'inTransit', currLocation: google.maps.LatLng, finalDestination: google.maps.LatLng) {
-            this.id=registration;
-            this.RegistrationExpiryDate=expiryDate;
-            this.Model=model;
-            this.Capacity=capacity;
-            this.Load=load;
-            this.CurrentSpeed=currSpeed;
-            this.GasLevel=gasLevel;
-            this.Status=status;
-            this.CurrentLocation=currLocation;
-            this.FinalDestination=finalDestination;
+    constructor(order: Truck) {
+            this.id=order.id;
+            this.RegistrationExpiryDate=order.RegistrationExpiryDate;
+            this.Model=order.Model;
+            this.Capacity=order.Capacity;
+            this.Load=order.Load;
+            this.CurrentSpeed=order.CurrentSpeed;
+            this.GasLevel=order.GasLevel;
+            this.Status=order.Status;
+            this.CurrentLocation=new google.maps.LatLng(order.CurrentLocation);
+            this.FinalDestination=new google.maps.LatLng(order.FinalDestination);
         }
 
         updateTruckData(newData: Partial<Truck>): void {
@@ -101,82 +100,83 @@ export class Truck implements Vehicle {
         //     );
         // }
 
-        updateGasLevel() {
-            this.gasLevel$=interval(2000);
+        // updateGasLevel() {
+        //     this.gasLevel$=interval(2000);
 
-            this.gasLevel$ = this.gasLevel$.pipe(
-                takeUntil(this.destinationReachedSubject),
-                startWith(this.GasLevel),
-                scan((gasLevel) => gasLevel-1, this.GasLevel),
-                takeWhile((gasLevel) => gasLevel >= 0),
-                // skipWhile(gasLevel => gasLevel > 0),
-                tap(gasLevel => {
-                    this.GasLevel = gasLevel;
-                    console.log(this.id + " gas level: " + gasLevel);
-                })
-            );
+        //     this.gasLevel$ = this.gasLevel$.pipe(
+        //         takeUntil(this.destinationReachedSubject),
+        //         startWith(this.GasLevel),
+        //         scan((gasLevel) => gasLevel-1, this.GasLevel),
+        //         takeWhile((gasLevel) => gasLevel >= 0),
+        //         // skipWhile(gasLevel => gasLevel > 0),
+        //         tap(gasLevel => {
+        //             this.GasLevel = gasLevel;
+        //             console.log(this.id + " gas level: " + gasLevel);
+        //         })
+        //     );
                 
-            // .subscribe(gasLevel => 
-            //     console.log(this.id + " gas level: " + gasLevel))
-        }
+        //     // .subscribe(gasLevel => 
+        //     //     console.log(this.id + " gas level: " + gasLevel))
+        // }
         
-        updateSpeed() {
-            this.speed$=interval(4000);
+        // updateSpeed() {
+        //     this.speed$=interval(4000);
 
-            this.speed$ = this.speed$.pipe(
-                takeUntil(this.destinationReachedSubject),
-                skipUntil(this.gasLevel$),
-                map((currentSpeed) => {
-                    currentSpeed = Math.floor(Math.random()*100);
-                    return currentSpeed;
-                }),
-                tap( currentSpeed => {
-                    this.CurrentSpeed = currentSpeed;
-                    console.log(this.id + " speed: " + currentSpeed);
-                }),
-                endWith(0)
-            );
-        }
+        //     this.speed$ = this.speed$.pipe(
+        //         takeUntil(this.destinationReachedSubject),
+        //         skipUntil(this.gasLevel$),
+        //         map((currentSpeed) => {
+        //             currentSpeed = Math.floor(Math.random()*100);
+        //             return currentSpeed;
+        //         }),
+        //         tap( currentSpeed => {
+        //             this.CurrentSpeed = currentSpeed;
+        //             console.log(this.id + " speed: " + currentSpeed);
+        //         }),
+        //         endWith(0)
+        //     );
+        // }
         
-        updateLocation() {
-            const stepSize=1000;
+        // updateLocation() {
+        //     const stepSize=1000;
 
-            this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(1000)]).pipe(
-                takeUntil(this.destinationReachedSubject),
-                filter(([currentSpeed, gasLevel]) => gasLevel > 0),
-                //takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
-                map(([currentSpeed, gasLevel]) => {
-                    //console.log(this.id + " INNER gas level: " + gasLevel);
+        //     this.location$ = combineLatest([this.speed$, this.gasLevel$, interval(1000)]).pipe(
+        //         takeUntil(this.destinationReachedSubject),
+        //         filter(([currentSpeed, gasLevel]) => gasLevel > 0),
+        //         //takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
+        //         map(([currentSpeed, gasLevel]) => {
+        //             //console.log(this.id + " INNER gas level: " + gasLevel);
 
-                    const metersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert speed to meters per second
-                    const latIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
-                    * (this.FinalDestination.lat() - this.CurrentLocation.lat());
-                    const lngIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
-                    * (this.FinalDestination.lng() - this.CurrentLocation.lng());
+        //             const metersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert speed to meters per second
+        //             const latIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
+        //             * (this.FinalDestination.lat() - this.CurrentLocation.lat());
+        //             const lngIncrement = (metersPerSecond*(gasLevel**2) / (google.maps.geometry.spherical.computeDistanceBetween(this.CurrentLocation, this.FinalDestination) || 1)) 
+        //             * (this.FinalDestination.lng() - this.CurrentLocation.lng());
                         
-                    let currentLocation=this.CurrentLocation;
+        //             let currentLocation=this.CurrentLocation;
                     
-                    const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
-                    currentLocation = newLocation;
+        //             const newLocation = new google.maps.LatLng(currentLocation.lat()+latIncrement, currentLocation.lng()+lngIncrement);
+        //             currentLocation = newLocation;
 
-                    return currentLocation;
-                })
-            );
-            this.location$.subscribe((location: google.maps.LatLng) => {
-                this.CurrentLocation=location;
-                console.log(this.id + " location: "  + this.CurrentLocation);
-                if(Math.abs(location.lat()-this.FinalDestination.lat())<0.01 &&
-                (Math.abs(location.lng()-this.FinalDestination.lng())<0.01))
-                {
-                    console.log("final: " + location);
-                    this.destinationReachedSubject.next();
-                    console.log(this.id + " destination reached.");
-                    this.Status='idle';
-                    this.CurrentLocation=new google.maps.LatLng(garageLocation);
-                    this.FinalDestination= new google.maps.LatLng(garageLocation);
-                    this.CurrentSpeed=0;
-                    updateTruckRequest(this);
-                }
-            })
-        }
+        //             return currentLocation;
+        //         })
+        //     // );
+        //     // this.location$.subscribe((location: google.maps.LatLng) => {
+        //     //     this.CurrentLocation=location;
+        //     //     console.log(this.id + " location: "  + this.CurrentLocation);
+        //     //     if(Math.abs(location.lat()-this.FinalDestination.lat())<0.01 &&
+        //     //     (Math.abs(location.lng()-this.FinalDestination.lng())<0.01))
+        //     //     {
+        //     //         console.log("final: " + location);
+        //     //         this.destinationReachedSubject.next();
+        //     //         console.log(this.id + " destination reached.");
+        //     //         this.Status='idle';
+        //     //         this.CurrentLocation=new google.maps.LatLng(garageLocation);
+        //     //         this.FinalDestination= new google.maps.LatLng(garageLocation);
+        //     //         this.CurrentSpeed=0;
+        //     //         updateTruckRequest(this);
+        //     //     }
+        //     // }
+        //     )
+        // }
 }

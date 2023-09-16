@@ -26,16 +26,14 @@ export class Driver implements Person {
     Status: 'available' | 'onRoad' | 'onBreak';
     AssignedVehicleID?: string;
 
-    constructor(id: string, name: string, phone: string, 
-        email: string, dateOfBirth: Date, status: 'available' | 'onRoad' | 'onBreak', vehicleID?: string) {
-            this.id = id;
-            this.FullName=name;
-            this.PhoneNumber=phone;
-            this.Email=email;
-            this.DateOfBirth=dateOfBirth;
-            this.Status=status;
-            if(vehicleID)
-                this.AssignedVehicleID=vehicleID;
+    constructor(driverData: Driver) {
+            this.id = driverData.id;
+            this.FullName=driverData.FullName;
+            this.PhoneNumber=driverData.PhoneNumber;
+            this.Email=driverData.Email;
+            this.DateOfBirth=driverData.DateOfBirth;
+            this.Status=driverData.Status;
+            this.AssignedVehicleID=driverData.AssignedVehicleID;
         }
 
     async assignShipment(shipmentID: string) {

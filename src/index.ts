@@ -1,15 +1,23 @@
-import { Observable, debounceTime, forkJoin, fromEvent, map, merge, mergeAll, mergeMap, takeUntil, tap } from "rxjs";
+import { Observable, Subject, debounceTime, forkJoin, from, fromEvent, map, merge, mergeAll, mergeMap, of, takeUntil, tap, zip } from "rxjs";
 import { garageLocation, vehiclesURL } from "../config";
 import { Coordinates } from "../testFunctions/coordinates";
-import { getTrucksFromServer, deleteContent, updateTruckRequest, getOrdersFromServer, getDriversFromServer, updateDriverRequest, updateOrderRequest } from "./services";
+import { getTrucksFromServer, deleteContent, updateTruckRequest, getOrdersFromServer, getDriversFromServer, updateDriverRequest, updateOrderRequest, getTruck, getDriver } from "./services";
 import { Driver, Person } from "./person";
 import { Order } from "./order";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 import { observableToBeFn } from "rxjs/internal/testing/TestScheduler";
-import { contentDiv, drawDrivers, drawOrder, drawOrders, drawTruck, drawTrucks, driversDiv, initializePage, mapDiv, ordersDiv, trucksDiv } from "./DOMstructure";
+import { drawDrivers, drawOrders, drawTrucks, initializePage } from "./DOMstructure";
+import { trackOrder } from "./orderTracking";
 
-initializePage();
+const menuDiv = document.createElement("div");
+const trucksDiv=document.createElement("div");
+const driversDiv=document.createElement("div");
+const ordersDiv=document.createElement("div");
+const contentDiv = document.createElement("div");
+const mapDiv=document.createElement("div");
 let marker;
+
+initializePage(menuDiv, trucksDiv, driversDiv, ordersDiv, contentDiv, mapDiv);
 
 (async function initMap() {
     const myMap = new google.maps.Map(mapDiv, 
@@ -24,48 +32,37 @@ let marker;
     });
 })();
 
-export let allTrucks: Array<Truck>=[];
-export let allOrders: Array<Order>=[];
-export let allDrivers: Array<Driver>=[];
+
+let allTrucks: Array<Truck>=[];
+let allOrders: Array<Order>=[];
+let allDrivers: Array<Driver>=[];
 
 const truck$: Observable<Truck[]> = getTrucksFromServer();
 const order$: Observable<Order[]> = getOrdersFromServer();
 const driver$: Observable<Driver[]> = getDriversFromServer();
 
-truck$.subscribe(truck => {
-    allTrucks=truck;
-}, err => {},
-() => console.log("truck$ COMPLETED"));
-
-driver$.subscribe(drivers => {
-    allDrivers=drivers;
-}, err => {},
-() => console.log("driver$ COMPLETED"));
-
-order$.pipe()
-    .subscribe(orders=>{
+zip([truck$, order$, driver$]).subscribe(([trucks, orders, drivers]) => {
+    allTrucks=trucks;
     allOrders=orders;
-
-        orders.forEach(async order => {
-            if(order.Status=='pending') {
-                let assignedTruck = allTrucks.find(truck => truck.Status == 'idle' && truck.Capacity >= order.TotalLoad);
-                let assignedDriver = allDrivers.find(driver => driver.Status=='available');
+    allDrivers=drivers;
     
-                console.log("assigned truck: ", assignedTruck);
-                console.log("assigned driver: ", assignedDriver);
+    allOrders.forEach(order => {
+        if(order.Status==='shipped') {
+            
+            
+            //trackOrder(order);
+        }
+    })
+})
 
-                let newOrder= new Order(order.id, order.Status, order.TotalLoad, new google.maps.LatLng(order.Destination),
-                    "", "");
-                    if(assignedDriver && assignedTruck)
-                newOrder.shipOrder(assignedTruck, assignedDriver);
+let shippedOrder$;
 
-                // if(assignedTruck && assignedDriver)
-                //     order.shipOrder(assignedTruck, assignedDriver);
-            }
-        })
+const gasLevel$ = new Observable<number>();
+const location$ = new Observable();
+const speed$ = new Observable<number>();
+const destinationReachedSubject = new Subject<void>();
 
-}, err => {},
-() => console.log("order$ COMPLETED"));
+
 
 trucksDiv.addEventListener('click', event => {
     event.preventDefault();
@@ -74,7 +71,6 @@ trucksDiv.addEventListener('click', event => {
     drawTrucks(allTrucks, contentDiv);
 })
     
-
 driversDiv.addEventListener('click', event => {
     event.preventDefault();
     deleteContent(event, 'drivers-div', contentDiv);

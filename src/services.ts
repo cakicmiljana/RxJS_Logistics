@@ -4,33 +4,33 @@ import { Truck } from "./vehicle";
 import { Order } from "./order";
 import { Driver } from "./person";
 
-export function getTruck(registrationID: string) {
-    fetch(vehiclesURL + registrationID)
+export function getTruck(registrationID: string) : Observable<Truck> {
+    return from(fetch(vehiclesURL + registrationID)
         .then(vehicle => {
             if(!vehicle.ok)
                 throw new Error("Vehicle not found.");
             else
-                console.log(vehicle.json())})
-            .catch(error => console.error(error));
+                return (vehicle.json());   
+        })
+        .catch(error => console.error(error))
+    )
 }
 
 export function getTrucksFromServer() : Observable<Truck[]> {
     
-    return new Observable<Truck[]>((observer) => {
-        fetch(vehiclesURL)
-        .then((APIresponse) => {
-            if(!APIresponse.ok)
-                throw new Error("Vehicles fetch failed.");
-            else {
-                return APIresponse.json();
-            }
-        })
-        .then((data: Truck[]) => {
-            observer.next(data as Truck[]);
-            observer.complete();
-        })
-        .catch(err => observer.error(err));
-    })
+    const promise = fetch(vehiclesURL)
+        .then(response => 
+            {
+                if(response.ok) {
+                    return response.json();
+                }
+                else {
+                    throw new Error("Vehicles fetch failed.");
+                }
+            })
+            .catch(error => console.log(error))
+
+        return from(promise);
     
 }
 
@@ -46,33 +46,48 @@ export function updateTruckRequest(truck: Truck) {
     });
 }
 
-export function getOrder(orderID: string) {
-    fetch(ordersURL + orderID)
+export async function getOrder(orderID: string) {
+    return from(fetch(ordersURL + orderID)
         .then(order => {
             if(!order.ok)
                 throw new Error("Order not found.");
             else
-                console.log(order.json())})
-            .catch(error => console.error(error));
+                return order.json();
+            })
+            .catch(error => console.error(error)));
 }
 
 export function getOrdersFromServer() : Observable<Order[]> {
     
-    return new Observable<Order[]>((observer) => {
-        fetch(ordersURL)
-        .then((APIresponse) => {
-            if(!APIresponse.ok)
-                throw new Error("Orders fetch failed.");
-            else {
-                return APIresponse.json();
-            }
-        })
-        .then((data: Order[]) => {
-            observer.next(data as Order[]);
-            observer.complete();
-        })
-        .catch(err => observer.error(err));
-    })
+    const promise = fetch(ordersURL)
+        .then(response => 
+            {
+                if(response.ok) {
+                    return response.json();
+                }
+                else {
+                    throw new Error("Orders fetch failed.");
+                }
+            })
+            .catch(error => console.log(error))
+
+        return from(promise);
+
+    // return new Observable<Order[]>((observer) => {
+    //     fetch(ordersURL)
+    //     .then((APIresponse) => {
+    //         if(!APIresponse.ok)
+    //             throw new Error("Orders fetch failed.");
+    //         else {
+    //             return APIresponse.json();
+    //         }
+    //     })
+    //     .then((data: Order[]) => {
+    //         observer.next(data as Order[]);
+    //         observer.complete();
+    //     })
+    //     .catch(err => observer.error(err));
+    // })
     
 }
 
@@ -101,33 +116,30 @@ export function newOrderRequest(order: Order) {
 }
 
 export function getDriver(driverID: string) {
-    fetch(driversURL + driverID)
+    return from(fetch(driversURL + driverID)
         .then(driver => {
             if(!driver.ok)
                 throw new Error("Driver not found.");
             else
-                console.log(driver.json())})
-            .catch(error => console.error(error));
+                return driver.json();        
+        })
+            .catch(error => console.error(error)));
 }
 
 export function getDriversFromServer() : Observable<Driver[]> {
-    
-    return new Observable<Driver[]>((observer) => {
-        fetch(driversURL)
-        .then((APIresponse) => {
-            if(!APIresponse.ok)
-                throw new Error("Drivers fetch failed.");
-            else {
-                return APIresponse.json();
-            }
-        })
-        .then((data: Driver[]) => {
-            observer.next(data as Driver[]);
-            observer.complete();
-        })
-        .catch(err => observer.error(err));
-    })
-    
+    const promise = fetch(driversURL)
+        .then(response => 
+            {
+                if(response.ok) {
+                    return response.json();
+                }
+                else {
+                    throw new Error("Drivers fetch failed.");
+                }
+            })
+            .catch(error => console.log(error))
+
+        return from(promise);
 }
 
 export function updateDriverRequest(driver: Driver) {

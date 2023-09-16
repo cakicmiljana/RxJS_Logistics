@@ -1,34 +1,27 @@
-import { allDrivers, allTrucks } from ".";
 import { garageLocation } from "../config";
 import { Order } from "./order";
 import { Driver } from "./person";
 import { newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
 
-export const mainDiv = document.createElement("div");
-export const menuDiv = document.createElement("div");
-export const menuH=document.createElement("h2");
-export const trucksDiv=document.createElement("div");
-export const driversDiv=document.createElement("div");
-export const ordersDiv=document.createElement("div");
-export const contentDiv = document.createElement("div");
-export const mapDiv=document.createElement("div");
-
-export function initializePage() {
+export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElement, driversDiv: HTMLDivElement, ordersDiv: HTMLDivElement,
+    contentDiv: HTMLDivElement, mapDiv: HTMLDivElement) {
     // glavni container
+    const mainDiv = document.createElement("div");
     mainDiv.classList.add("main-div");
     mainDiv.id="main";
     document.body.appendChild(mainDiv);
-
+    
     // meni
     menuDiv.classList.add("menu-div");
     mainDiv.appendChild(menuDiv);
-
+    
+    const menuH=document.createElement("h2");
     menuH.classList.add("menu-h");
     menuH.textContent="MENU";
     menuH.style.marginBottom="40px";
     menuDiv.appendChild(menuH);
-
+    
     // podaci o kamionima
     trucksDiv.classList.add("trucks-div");
     trucksDiv.textContent="TRUCKS";
@@ -118,16 +111,9 @@ export function drawTrucks(trucks: Truck[], host: HTMLElement) {
     host.appendChild(trucksContainer);
 
     for(let t of trucks) {
-        const truck=new Truck(t.id,t.RegistrationExpiryDate,t.Model,t.Capacity,t.Load,t.CurrentSpeed,
-            t.GasLevel,t.Status, new google.maps.LatLng(t.CurrentLocation),
-            new google.maps.LatLng(t.FinalDestination));
+        const truck=new Truck(t);
         
         drawTruck(truck, trucksContainer);
-        if(truck.Status=='inTransit') {
-            truck.updateGasLevel();
-            truck.updateSpeed();
-            truck.updateLocation();
-        }
     }
 }
 
@@ -234,8 +220,7 @@ export function drawOrders(orders: Order[], host: HTMLElement) {
     host.appendChild(ordersContainer);
     
     for(let o of orders) {
-        const order=new Order(o.id, o.Status, o.TotalLoad, new google.maps.LatLng(o.Destination), 
-        o.AssignedDriverID, o.AssignedTruckID);
+        const order=new Order(o);
 
         drawOrder(order, ordersContainer);
     }
@@ -311,8 +296,7 @@ export function drawDrivers(drivers: Driver[], host: HTMLElement) {
     host.appendChild(driversContainer);
 
     for(let d of drivers) {
-        const driver=new Driver(d.id, d.FullName, d.PhoneNumber, d.Email, d.DateOfBirth, 
-        d.Status, d.AssignedVehicleID);
+        const driver=new Driver(d);
 
         drawDriver(driver, driversContainer);
     }
