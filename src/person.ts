@@ -41,6 +41,11 @@ export class Driver implements Person {
         await fetch(driversURL);
     }
 
+    destinationReachedUpdate() {
+      this.Status='available';
+      this.AssignedVehicleID="";
+    }
+
     updateDriverData(newData: Partial<Driver>): void {
         if (newData.hasOwnProperty('id')) {
           this.id = newData.id;

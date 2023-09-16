@@ -6,9 +6,9 @@
       "Model": "BMW",
       "Capacity": "21",
       "Load": 20,
-      "CurrentSpeed": 3,
-      "GasLevel": 28,
-      "Status": "inTransit",
+      "CurrentSpeed": 38,
+      "GasLevel": 26,
+      "Status": "idle",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
@@ -44,8 +44,8 @@
       "PhoneNumber": "0645998739",
       "Email": "igormark@gmail.com",
       "DateOfBirth": "1978-12-10",
-      "Status": "onRoad",
-      "AssignedVehicleID": "LE536VA"
+      "Status": "available",
+      "AssignedVehicleID": ""
     },
     {
       "id": "02059991349256",
@@ -71,7 +71,7 @@
     },
     {
       "id": 2,
-      "Status": "shipped",
+      "Status": "delivered",
       "TotalLoad": 25,
       "Destination": {
         "lat": 45.1656,

@@ -50,38 +50,44 @@ export class Truck implements Vehicle {
             this.FinalDestination=new google.maps.LatLng(order.FinalDestination);
         }
 
-        updateTruckData(newData: Partial<Truck>): void {
-            if (newData.hasOwnProperty('CurrentLocation')) {
-              this.CurrentLocation = newData.CurrentLocation;
-            }
-            if (newData.hasOwnProperty('CurrentSpeed')) {
-              this.CurrentSpeed = newData.CurrentSpeed;
-            }
-            if (newData.hasOwnProperty('GasLevel')) {
-              this.GasLevel = newData.GasLevel;
-            }
-            if (newData.hasOwnProperty('Status')) {
-              this.Status = newData.Status;
-            }
-            if (newData.hasOwnProperty('FinalDestination')) {
-              this.FinalDestination = newData.FinalDestination;
-            }
-        }
+      updateTruckData(newData: Partial<Truck>): void {
+          if (newData.hasOwnProperty('CurrentLocation')) {
+            this.CurrentLocation = newData.CurrentLocation;
+          }
+          if (newData.hasOwnProperty('CurrentSpeed')) {
+            this.CurrentSpeed = newData.CurrentSpeed;
+          }
+          if (newData.hasOwnProperty('GasLevel')) {
+            this.GasLevel = newData.GasLevel;
+          }
+          if (newData.hasOwnProperty('Status')) {
+            this.Status = newData.Status;
+          }
+          if (newData.hasOwnProperty('FinalDestination')) {
+            this.FinalDestination = newData.FinalDestination;
+          }
+      }
 
-        async trackTruckLocation(ID: string, host: HTMLElement) {
+      async trackTruckLocation(ID: string, host: HTMLElement) {
 
-            const truckOnMap = new google.maps.Map(host, 
-            {
-                center: this.CurrentLocation,
-                zoom: 4
-            });    
-            const marker=new google.maps.Marker({
-                position: this.CurrentLocation,
-                map: truckOnMap
-            });
+          const truckOnMap = new google.maps.Map(host, 
+          {
+              center: this.CurrentLocation,
+              zoom: 4
+          });    
+          const marker=new google.maps.Marker({
+              position: this.CurrentLocation,
+              map: truckOnMap
+          });
 
-            //this.simulateMovement().subscribe(newLocation => marker.setPosition(newLocation));
-        }
+          //this.simulateMovement().subscribe(newLocation => marker.setPosition(newLocation));
+      }
+
+      destinationReachedUpdate() {
+        this.Status='idle';
+        this.CurrentLocation=new google.maps.LatLng(garageLocation);
+        this.FinalDestination= new google.maps.LatLng(garageLocation);
+      }
         
         // static async showAllTrucksOnMap(vehicle$: Observable<Truck>, mapElement: HTMLDivElement) {
         //     const myMap = new google.maps.Map(mapElement, 

@@ -45,12 +45,12 @@ zip([truck$, order$, driver$]).subscribe(([trucks, orders, drivers]) => {
     allTrucks=trucks;
     allOrders=orders;
     allDrivers=drivers;
-    
+
     allOrders.forEach(order => {
         if(order.Status==='shipped') {
             
             
-            //trackOrder(order);
+            trackOrder(new Order(order));
         }
     })
 })

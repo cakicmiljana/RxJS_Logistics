@@ -1,8 +1,8 @@
-import { Observable, Subject, combineLatest, endWith, filter, forkJoin, interval, map, scan, skipUntil, startWith, takeUntil, takeWhile, tap } from "rxjs";
+import { Observable, Subject, combineLatest, concatMap, endWith, filter, forkJoin, from, interval, map, scan, skipUntil, startWith, switchMap, takeUntil, takeWhile, tap } from "rxjs";
 import { Order } from "./order";
 import { Driver } from "./person";
 import { Truck } from "./vehicle";
-import { getDriver, getTruck, updateTruckRequest } from "./services";
+import { getDriver, getTruck, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { garageLocation } from "../config";
 
 
@@ -19,19 +19,24 @@ export function trackOrder(orderForTracking: Order) {
             throw new Error("Failed to load driver.");
 
         forkJoin([truck$, driver$]).pipe(
-            map(([truckData, driverData]) => {
+            switchMap(([truckData, driverData]) => {
                 const truck=new Truck(truckData);
                 const driver=new Driver(driverData);
-                return {truck, driver}
-            })    
-        ).subscribe(({truck, driver}) => {
-            console.log('Truck ID:', truck.id);
-            console.log('Driver ID:', driver.id);
-            
-            trackTruckLocation(truck).subscribe((location: google.maps.LatLng) => {
-                truck.CurrentLocation=location;
-                console.log(truck.id + " location: "  + truck.CurrentLocation);
+                return from(trackTruckLocation(truck)).pipe(
+                    map((location) => ({ truck, driver, location }))
+                )
             })
+        ).subscribe(({truck, driver, location}) => {
+            console.log('Truck ID: ', truck.id);
+            console.log('Driver ID: ', driver.id);
+            truck.CurrentLocation=location;
+            console.log(truck.id + " location: "  + truck.CurrentLocation);
+            truck.destinationReachedUpdate();
+            driver.destinationReachedUpdate();
+            orderForTracking.destinationReachedUpdate();
+            updateTruckRequest(truck);
+            updateDriverRequest(driver);
+            updateOrderRequest(orderForTracking);
         });
 
     }
@@ -104,11 +109,7 @@ export function trackTruckLocation(movingTruck: Truck) {
                     destinationReachedSubject.next();
                     console.log("final: " + currentLocation);
                     console.log(movingTruck.id + " destination reached.");
-                    movingTruck.Status='idle';
-                    movingTruck.CurrentLocation=new google.maps.LatLng(garageLocation);
-                    movingTruck.FinalDestination= new google.maps.LatLng(garageLocation);
                     //movingTruck.CurrentSpeed=0;
-                    updateTruckRequest(movingTruck);
                 }
 
                 return currentLocation;

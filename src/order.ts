@@ -82,4 +82,8 @@ export class Order {
         updateDriverRequest(assignedDriver);
         updateOrderRequest(this);
     }
+
+    destinationReachedUpdate() {
+        this.Status='delivered';
+    }
 }
