@@ -85,6 +85,7 @@ export class Truck implements Vehicle {
 
       destinationReachedUpdate() {
         this.Status='idle';
+        this.Load=0;
         this.CurrentLocation=new google.maps.LatLng(garageLocation);
         this.FinalDestination= new google.maps.LatLng(garageLocation);
       }

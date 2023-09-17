@@ -6,16 +6,16 @@
       "Model": "BMW",
       "Capacity": "21",
       "Load": 20,
-      "CurrentSpeed": 38,
-      "GasLevel": 26,
-      "Status": "idle",
+      "CurrentSpeed": 90,
+      "GasLevel": 5,
+      "Status": "inTransit",
       "CurrentLocation": {
-        "lat": 42.9977,
-        "lng": 21.9654
+        "lat": 43.219475207329076,
+        "lng": 22.266911528975722
       },
       "FinalDestination": {
-        "lat": 42.9977,
-        "lng": 21.9654
+        "lat": 43.6452,
+        "lng": 22.8457
       }
     },
     {
@@ -23,7 +23,7 @@
       "RegistrationExpiryDate": "2024-11-24",
       "Model": "G67",
       "Capacity": "29",
-      "Load": "25",
+      "Load": "0",
       "CurrentSpeed": 26,
       "GasLevel": 77,
       "Status": "idle",
@@ -44,8 +44,8 @@
       "PhoneNumber": "0645998739",
       "Email": "igormark@gmail.com",
       "DateOfBirth": "1978-12-10",
-      "Status": "available",
-      "AssignedVehicleID": ""
+      "Status": "onRoad",
+      "AssignedVehicleID": "LE536VA"
     },
     {
       "id": "02059991349256",
@@ -82,11 +82,11 @@
     },
     {
       "id": 3,
-      "Status": "pending",
+      "Status": "shipped",
       "TotalLoad": 20,
       "Destination": {
-        "lat": 45.6452,
-        "lng": 21.8457
+        "lat": 43.6452,
+        "lng": 22.8457
       },
       "AssignedDriverID": "121097831234",
       "AssignedTruckID": "LE536VA"

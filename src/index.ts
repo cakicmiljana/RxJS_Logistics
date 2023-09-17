@@ -7,7 +7,7 @@ import { Order } from "./order";
 import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 import { observableToBeFn } from "rxjs/internal/testing/TestScheduler";
 import { drawDrivers, drawOrders, drawTrucks, initializePage } from "./DOMstructure";
-import { trackOrder } from "./orderTracking";
+import { orderTransitSimulation } from "./orderTracking";
 
 const menuDiv = document.createElement("div");
 const trucksDiv=document.createElement("div");
@@ -15,6 +15,7 @@ const driversDiv=document.createElement("div");
 const ordersDiv=document.createElement("div");
 const contentDiv = document.createElement("div");
 const mapDiv=document.createElement("div");
+mapDiv.id="map";
 let marker;
 
 initializePage(menuDiv, trucksDiv, driversDiv, ordersDiv, contentDiv, mapDiv);
@@ -47,40 +48,39 @@ zip([truck$, order$, driver$]).subscribe(([trucks, orders, drivers]) => {
     allDrivers=drivers;
 
     allOrders.forEach(order => {
+        const workingOrder = new Order(order);
         if(order.Status==='shipped') {
             
             
-            trackOrder(new Order(order));
+            orderTransitSimulation(workingOrder);
+        }
+        else if(order.Status==='pending') {
+            
         }
     })
-})
-
-let shippedOrder$;
-
-const gasLevel$ = new Observable<number>();
-const location$ = new Observable();
-const speed$ = new Observable<number>();
-const destinationReachedSubject = new Subject<void>();
 
 
+    trucksDiv.addEventListener('click', async event => {
+        event.preventDefault();
+        deleteContent(event, 'trucks-div', contentDiv);
+        
 
-trucksDiv.addEventListener('click', event => {
-    event.preventDefault();
-    deleteContent(event, 'trucks-div', contentDiv);
+        drawTrucks(allTrucks, contentDiv);
+    })
+        
+    driversDiv.addEventListener('click', event => {
+        event.preventDefault();
+        deleteContent(event, 'drivers-div', contentDiv);
+        
+
+        drawDrivers(allDrivers, contentDiv);
+    })
     
-    drawTrucks(allTrucks, contentDiv);
-})
+    ordersDiv.addEventListener("click", async (event) => {
+        event.preventDefault();
+        deleteContent(event, 'orders-div', contentDiv);
     
-driversDiv.addEventListener('click', event => {
-    event.preventDefault();
-    deleteContent(event, 'drivers-div', contentDiv);
-
-    drawDrivers(allDrivers, contentDiv);
-})
-
-ordersDiv.addEventListener("click", async (event) => {
-    event.preventDefault();
-    deleteContent(event, 'orders-div', contentDiv);
-
-    drawOrders(allOrders, contentDiv);
+    
+        drawOrders(allOrders, contentDiv, allTrucks, allDrivers);
+    })
 })

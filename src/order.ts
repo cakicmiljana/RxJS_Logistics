@@ -65,7 +65,11 @@ export class Order {
     }
 
     
-    shipOrder(assignedTruck: Truck, assignedDriver: Driver) {
+    shipOrder(allTrucks: Truck[], allDrivers: Driver[]) {
+
+        let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=this.TotalLoad)
+        let assignedDriver: Driver = allDrivers.find(driver => driver.Status==='available')
+
 
         assignedTruck.Status='inTransit';
         assignedTruck.Load=this.TotalLoad;

@@ -1,7 +1,8 @@
 import { garageLocation } from "../config";
 import { Order } from "./order";
+import { shipOrder, trackOrder } from "./orderTracking";
 import { Driver } from "./person";
-import { newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
+import { getTruck, newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
 
 export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElement, driversDiv: HTMLDivElement, ordersDiv: HTMLDivElement,
@@ -43,7 +44,7 @@ export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElemen
     
     mapDiv.classList.add("map-div");
     mapDiv.id="map";
-    contentDiv.appendChild(mapDiv);
+    mainDiv.appendChild(mapDiv);
 }
 
 export function drawTruck(truck: Truck, host: HTMLElement) {
@@ -88,16 +89,13 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
         trackButton.value="TRACK LOCATION";
         truckDiv.appendChild(trackButton);
         
-        trackButton.addEventListener('click', (event) => 
+        trackButton.addEventListener('click', async (event) => 
         {
-            console.log("target ", event.target);
-            while(host.childNodes.length>1){
-                if(host.firstChild!=event.target)
-                    host.removeChild(host.firstChild);
-                else host.removeChild(host.lastChild);
-            }
-
-            this.trackTruckLocation(truck.id, host);
+            trackOrder(new Truck(truck));
+            //this.trackTruckLocation(truck.id, host);
+            // console.log('Gas level: ', truck.GasLevel);
+            // console.log('Speed: ', truck.CurrentSpeed);
+            // console.log("Location: "  + truck.CurrentLocation);
         })
     }
 
@@ -117,7 +115,29 @@ export function drawTrucks(trucks: Truck[], host: HTMLElement) {
     }
 }
 
-export function drawOrder(order: Order, host: HTMLElement) {
+
+// export function trackOrder(truck: Truck, host: HTMLElement) {
+//     const mapDiv=document.createElement("div");
+//     host.appendChild(mapDiv);
+
+//     const myMap = new google.maps.Map(mapDiv, 
+//         {
+//             center: garageLocation,
+//             zoom: 7
+//         });
+    
+//     let currentLocationMarker = new google.maps.Marker({
+//         position: truck.CurrentLocation,
+//         map: myMap
+//     });
+
+//     let FinalDestinationMarker = new google.maps.Marker({
+//         position: truck.FinalDestination,
+//         map: myMap
+//     });
+// }
+
+export function drawOrder(order: Order, host: HTMLElement, allTrucks?: Truck[], allDrivers?: Driver[]) {
        
     const orderDiv=document.createElement("div");
     orderDiv.classList.add("order-div");
@@ -143,7 +163,7 @@ export function drawOrder(order: Order, host: HTMLElement) {
     destinationLabel.textContent= "DESTINATION: " + order.Destination.toString();
     orderDiv.appendChild(destinationLabel);
 
-    if(order.Status=='shipped') {
+    if(order.Status==='shipped') {
         const trackButton=document.createElement("input");
         trackButton.type="button";
         trackButton.value="TRACK ORDER";
@@ -151,26 +171,28 @@ export function drawOrder(order: Order, host: HTMLElement) {
         
         trackButton.addEventListener('click', (event) => 
         {
-            
+            getTruck(order.AssignedTruckID).subscribe(response => {
+                const truck = new Truck(response);
+                trackOrder(truck);
+            });
         })
     }
-    else if(order.Status=='pending') {
+    else if(order.Status==='pending') {
         const shipButton=document.createElement("input");
         shipButton.type="button";
         shipButton.value="SHIP ORDER";
+        shipButton.id='shipButtonID';
         orderDiv.appendChild(shipButton);
         
         shipButton.addEventListener('click', (event) => 
         {
-            if(order.Status=='pending') {
-                
-            }
+            shipOrder(order, allTrucks, allDrivers);
         })
     }
 
 }
 
-export function drawOrders(orders: Order[], host: HTMLElement) {
+export function drawOrders(orders: Order[], host: HTMLElement, allTrucks?: Truck[], allDrivers?: Driver[]) {
     
     const newOrderDiv=document.createElement("div");
     newOrderDiv.classList.add("newOrder-div");
@@ -221,8 +243,10 @@ export function drawOrders(orders: Order[], host: HTMLElement) {
     
     for(let o of orders) {
         const order=new Order(o);
-
-        drawOrder(order, ordersContainer);
+        if(o.Status==='pending')
+            drawOrder(order, ordersContainer, allTrucks, allDrivers);
+        else
+            drawOrder(order, ordersContainer);
     }
 
     newOrderButton.addEventListener('click', event => {
@@ -264,7 +288,7 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
     phoneNumberLabel.textContent= "PHONE NUMBER: " + driver.PhoneNumber;
     driverDiv.appendChild(phoneNumberLabel);
     
-    if(driver.Status == 'onRoad') {
+    if(driver.Status === 'onRoad') {
     
         const assignedTruckLabel=document.createElement("label");
         assignedTruckLabel.classList.add("label");

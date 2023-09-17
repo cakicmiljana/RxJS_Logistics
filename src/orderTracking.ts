@@ -1,4 +1,4 @@
-import { Observable, Subject, combineLatest, concatMap, endWith, filter, forkJoin, from, interval, map, scan, skipUntil, startWith, switchMap, takeUntil, takeWhile, tap } from "rxjs";
+import { Observable, Subject, combineLatest, concatMap, endWith, filter, finalize, forkJoin, from, interval, map, scan, skipUntil, skipWhile, startWith, switchMap, takeUntil, takeWhile, tap, zip } from "rxjs";
 import { Order } from "./order";
 import { Driver } from "./person";
 import { Truck } from "./vehicle";
@@ -6,7 +6,7 @@ import { getDriver, getTruck, updateDriverRequest, updateOrderRequest, updateTru
 import { garageLocation } from "../config";
 
 
-export function trackOrder(orderForTracking: Order) {
+export function orderTransitSimulation(orderForTracking: Order) {
 
     if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) {
 
@@ -17,26 +17,36 @@ export function trackOrder(orderForTracking: Order) {
             throw new Error("Failed to load truck.")
         if(!driver$)
             throw new Error("Failed to load driver.");
+        
+        let truck: Truck;
+        let driver: Driver;
 
         forkJoin([truck$, driver$]).pipe(
             switchMap(([truckData, driverData]) => {
-                const truck=new Truck(truckData);
-                const driver=new Driver(driverData);
+                truck=new Truck(truckData);
+                driver=new Driver(driverData);
                 return from(trackTruckLocation(truck)).pipe(
                     map((location) => ({ truck, driver, location }))
                 )
+            }),
+            finalize(() => {
+                console.log("trackTruckLocation completed.");
+                truck.destinationReachedUpdate(); // Call destinationReachedUpdate for truck
+                driver.destinationReachedUpdate(); // Call destinationReachedUpdate for driver
+                orderForTracking.destinationReachedUpdate(); // Call destinationReachedUpdate for orderForTracking
+                // updateTruckRequest(truck);
+                // updateDriverRequest(driver);
+                // updateOrderRequest(orderForTracking);
+                // Rest of your code
             })
         ).subscribe(({truck, driver, location}) => {
-            console.log('Truck ID: ', truck.id);
-            console.log('Driver ID: ', driver.id);
             truck.CurrentLocation=location;
-            console.log(truck.id + " location: "  + truck.CurrentLocation);
-            truck.destinationReachedUpdate();
-            driver.destinationReachedUpdate();
-            orderForTracking.destinationReachedUpdate();
-            updateTruckRequest(truck);
-            updateDriverRequest(driver);
-            updateOrderRequest(orderForTracking);
+            console.log('Gas level: ', truck.GasLevel);
+            console.log('Speed: ', truck.CurrentSpeed);
+            console.log("Location: "  + truck.CurrentLocation);
+            // updateTruckRequest(truck);
+            // updateDriverRequest(driver);
+            // updateOrderRequest(orderForTracking);
         });
 
     }
@@ -53,22 +63,22 @@ export function trackTruckLocation(movingTruck: Truck) {
     
     gasLevel$ = (function updateGasLevel() {
         return interval(2000).pipe(
-            takeUntil(location$),
+            takeUntil(destinationReachedSubject),
             startWith(movingTruck.GasLevel),
             scan((newGasLevel: number) => newGasLevel-1, movingTruck.GasLevel),
-            takeWhile((currentGasLevel: number) => currentGasLevel > 0),
-            // skipWhile(gasLevel => gasLevel > 0),
+            //takeWhile((currentGasLevel: number) => currentGasLevel > 0),
+            filter(gasLevel => gasLevel > 0),
             tap((currentGasLevel: number) => {
                 movingTruck.GasLevel = currentGasLevel;
-                console.log(movingTruck.id + " gas level: " + currentGasLevel);
+                //console.log("Gas level: " + currentGasLevel);
             })
         );
     })();
         
     speed$ = (function updateSpeed() {
         
-        return interval(4000).pipe(
-            takeUntil(location$),
+        return interval(2000).pipe(
+            takeUntil(destinationReachedSubject),
             skipUntil(gasLevel$),
             map((newSpeed) => {
                 newSpeed = Math.floor(Math.random()*100);
@@ -76,7 +86,7 @@ export function trackTruckLocation(movingTruck: Truck) {
             }),
             tap(newSpeed => {
                 movingTruck.CurrentSpeed = newSpeed;
-                console.log(movingTruck.id + " speed: " + newSpeed);
+                //console.log(movingTruck.id + " speed: " + newSpeed);
             }),
             endWith(0)
         );
@@ -85,10 +95,11 @@ export function trackTruckLocation(movingTruck: Truck) {
     return location$ = (function updateLocation() {
         const stepSize=1000;
 
-        return combineLatest([speed$, gasLevel$, interval(1000)]).pipe(
+        return zip([speed$, gasLevel$]).pipe(
             takeUntil(destinationReachedSubject),
             filter(([currentSpeed, gasLevel]) => gasLevel > 0),
-            //takeWhile(([currentSpeed, gasLevel]) => gasLevel > 0),
+            skipUntil(gasLevel$),
+            skipUntil(speed$),
             map(([currentSpeed, gasLevel]) => {
                 //console.log(this.id + " INNER gas level: " + gasLevel);
 
@@ -109,6 +120,9 @@ export function trackTruckLocation(movingTruck: Truck) {
                     destinationReachedSubject.next();
                     console.log("final: " + currentLocation);
                     console.log(movingTruck.id + " destination reached.");
+                    // truck.destinationReachedUpdate();
+                    // driver.destinationReachedUpdate();
+                    // orderForTracking.destinationReachedUpdate();
                     //movingTruck.CurrentSpeed=0;
                 }
 
@@ -116,4 +130,52 @@ export function trackTruckLocation(movingTruck: Truck) {
             })
             );
     })();
+}
+
+
+export function shipOrder(pendingOrder: Order, allTrucks: Truck[], allDrivers: Driver[]) {
+
+    console.log("ORDER: ", pendingOrder);
+
+    let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=pendingOrder.TotalLoad)
+    let assignedDriver: Driver = allDrivers.find(driver => driver.Status==='available')
+
+
+    assignedTruck.Status='inTransit';
+    assignedTruck.Load=pendingOrder.TotalLoad;
+    assignedTruck.FinalDestination=new google.maps.LatLng(pendingOrder.Destination);
+
+    assignedDriver.Status='onRoad';
+    assignedDriver.AssignedVehicleID=assignedTruck.id;
+
+    pendingOrder.Status='shipped';
+    pendingOrder.AssignedTruckID=assignedTruck.id;
+    pendingOrder.AssignedDriverID=assignedDriver.id;
+
+    console.log("ORDER IS: ", pendingOrder);
+    console.log("TRUCK IS: ", assignedTruck);
+    console.log("DRIVER IS: ", assignedDriver);
+
+    updateTruckRequest(assignedTruck);
+    updateDriverRequest(assignedDriver);
+    updateOrderRequest(pendingOrder);
+}
+
+export function trackOrder(truck: Truck) {
+
+    const myMap = new google.maps.Map(document.getElementById("map"), 
+        {
+            center: garageLocation,
+            zoom: 7
+        });
+    
+    let currentLocationMarker = new google.maps.Marker({
+        position: truck.CurrentLocation,
+        map: myMap
+    });
+
+    let FinalDestinationMarker = new google.maps.Marker({
+        position: truck.FinalDestination,
+        map: myMap
+    });
 }
