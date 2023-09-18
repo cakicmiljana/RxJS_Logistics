@@ -158,7 +158,6 @@ export function deleteContent(event: Event, className: string, host: HTMLElement
     let trgt=<Element>event.target;
     while(host.firstChild){
         if(!host.classList.contains(className)) {
-            console.log("item", host.lastChild, "deleted");
             host.removeChild(host.lastChild);
         }
     }

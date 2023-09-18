@@ -1,4 +1,4 @@
-import { Observable, Subject, combineLatest, concatMap, endWith, filter, finalize, forkJoin, from, interval, map, scan, skipUntil, skipWhile, startWith, switchMap, takeUntil, takeWhile, tap, zip } from "rxjs";
+import { Observable, Subject, combineLatest, concat, concatMap, endWith, filter, finalize, forkJoin, from, iif, interval, map, merge, mergeMap, of, scan, skipUntil, skipWhile, startWith, switchMap, take, takeUntil, takeWhile, tap, zip } from "rxjs";
 import { Order } from "./order";
 import { Driver } from "./person";
 import { Truck } from "./vehicle";
@@ -27,18 +27,17 @@ export function orderTransitSimulation(orderForTracking: Order) {
                 truck=new Truck(truckData);
                 driver=new Driver(driverData);
                 return from(trackTruckLocation(truck)).pipe(
-                    map((location) => ({ truck, driver, location }))
+                    map((location) => ({ truck, driver, location })),
+                    finalize(() => {
+                        console.log("trackTruckLocation completed.");
+                        truck.destinationReachedUpdate(); // Call destinationReachedUpdate for truck
+                        driver.destinationReachedUpdate(); // Call destinationReachedUpdate for driver
+                        orderForTracking.destinationReachedUpdate(); // Call destinationReachedUpdate for orderForTracking
+                        updateTruckRequest(truck);
+                        updateDriverRequest(driver);
+                        updateOrderRequest(orderForTracking);
+                    })
                 )
-            }),
-            finalize(() => {
-                console.log("trackTruckLocation completed.");
-                truck.destinationReachedUpdate(); // Call destinationReachedUpdate for truck
-                driver.destinationReachedUpdate(); // Call destinationReachedUpdate for driver
-                orderForTracking.destinationReachedUpdate(); // Call destinationReachedUpdate for orderForTracking
-                // updateTruckRequest(truck);
-                // updateDriverRequest(driver);
-                // updateOrderRequest(orderForTracking);
-                // Rest of your code
             })
         ).subscribe(({truck, driver, location}) => {
             truck.CurrentLocation=location;
@@ -61,15 +60,16 @@ export function trackTruckLocation(movingTruck: Truck) {
     let location$ = new Observable();
     let speed$ = new Observable<number>();
     let destinationReachedSubject = new Subject<void>();
-
+    
     
     gasLevel$ = (function updateGasLevel() {
+
         return interval(2000).pipe(
             takeUntil(destinationReachedSubject),
             startWith(movingTruck.GasLevel),
             scan((newGasLevel: number) => newGasLevel-1, movingTruck.GasLevel),
-            //takeWhile((currentGasLevel: number) => currentGasLevel > 0),
-            filter(gasLevel => gasLevel > 0),
+            // takeWhile((currentGasLevel: number) => currentGasLevel > 0),
+            //filter(gasLevel => gasLevel > 0),
             tap((currentGasLevel: number) => {
                 movingTruck.GasLevel = currentGasLevel;
                 //console.log("Gas level: " + currentGasLevel);
@@ -78,6 +78,7 @@ export function trackTruckLocation(movingTruck: Truck) {
     })();
         
     speed$ = (function updateSpeed() {
+
         
         return interval(2000).pipe(
             takeUntil(destinationReachedSubject),
