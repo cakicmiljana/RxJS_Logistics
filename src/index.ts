@@ -8,6 +8,7 @@ import { Truck, Vehicle, VehicleStatus } from "./vehicle";
 import { observableToBeFn } from "rxjs/internal/testing/TestScheduler";
 import { drawDrivers, drawOrders, drawTrucks, initializePage } from "./DOMstructure";
 import { orderTransitSimulation } from "./orderTracking";
+import { setupMap } from "./mapLogic";
 
 const menuDiv = document.createElement("div");
 const trucksDiv=document.createElement("div");
@@ -21,16 +22,7 @@ let marker;
 initializePage(menuDiv, trucksDiv, driversDiv, ordersDiv, contentDiv, mapDiv);
 
 (async function initMap() {
-    const myMap = new google.maps.Map(mapDiv, 
-    {
-        center: garageLocation,
-        zoom: 7
-    });
-
-    marker = new google.maps.Marker({
-        position: garageLocation,
-        map: myMap
-    });
+    setupMap(mapDiv);
 })();
 
 

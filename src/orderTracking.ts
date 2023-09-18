@@ -5,12 +5,13 @@ import { Truck } from "./vehicle";
 import { getDriver, getTruck, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { garageLocation } from "../config";
 
+let currentLocationMarker: google.maps.Marker;
 
 export function orderTransitSimulation(orderForTracking: Order) {
 
     if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) {
 
-        const truck$=getTruck(orderForTracking.AssignedTruckID); 
+        const truck$=getTruck(orderForTracking.AssignedTruckID);
         const driver$=getDriver(orderForTracking.AssignedDriverID);
 
         if(!truck$)
@@ -41,6 +42,7 @@ export function orderTransitSimulation(orderForTracking: Order) {
             })
         ).subscribe(({truck, driver, location}) => {
             truck.CurrentLocation=location;
+            //currentLocationMarker.setPosition(truck.CurrentLocation);
             console.log('Gas level: ', truck.GasLevel);
             console.log('Speed: ', truck.CurrentSpeed);
             console.log("Location: "  + truck.CurrentLocation);
@@ -161,21 +163,21 @@ export function shipOrder(pendingOrder: Order, allTrucks: Truck[], allDrivers: D
     updateOrderRequest(pendingOrder);
 }
 
-export function trackOrder(truck: Truck) {
+// export function trackOrder(truck: Truck) {
 
-    const myMap = new google.maps.Map(document.getElementById("map"), 
-        {
-            center: garageLocation,
-            zoom: 7
-        });
+//     const myMap = new google.maps.Map(document.getElementById("map"), 
+//         {
+//             center: garageLocation,
+//             zoom: 7
+//         });
     
-    let currentLocationMarker = new google.maps.Marker({
-        position: truck.CurrentLocation,
-        map: myMap
-    });
+//     currentLocationMarker = new google.maps.Marker({
+//         position: truck.CurrentLocation,
+//         map: myMap
+//     });
 
-    let FinalDestinationMarker = new google.maps.Marker({
-        position: truck.FinalDestination,
-        map: myMap
-    });
-}
+//     let FinalDestinationMarker = new google.maps.Marker({
+//         position: truck.FinalDestination,
+//         map: myMap
+//     });
+// }

@@ -1,6 +1,7 @@
 import { garageLocation } from "../config";
+import { trackOrder } from "./mapLogic";
 import { Order } from "./order";
-import { shipOrder, trackOrder } from "./orderTracking";
+import { shipOrder } from "./orderTracking";
 import { Driver } from "./person";
 import { getTruck, newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
@@ -41,6 +42,10 @@ export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElemen
     // content
     contentDiv.classList.add("content-div");
     mainDiv.appendChild(contentDiv);
+
+    const welcomeLabel = document.createElement("h1");
+    welcomeLabel.textContent="Welcome to order tracking. Please select entity.";
+    contentDiv.appendChild(welcomeLabel);
     
     mapDiv.classList.add("map-div");
     mapDiv.id="map";
@@ -302,13 +307,10 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
         
         trackButton.addEventListener('click', (event) => 
         {
-            console.log("target ", event.target);
-            while(host.childNodes.length>1){
-                if(host.firstChild!=event.target)
-                    host.removeChild(host.firstChild);
-                else host.removeChild(host.lastChild);
-            }
-
+            getTruck(driver.AssignedVehicleID).subscribe(response => {
+                const truck = new Truck(response);
+                trackOrder(truck);
+            });
         })
     }
 
