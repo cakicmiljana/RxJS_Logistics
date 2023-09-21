@@ -2,7 +2,7 @@ import { garageLocation } from "../config";
 import { trackOrder } from "./mapLogic";
 import { Order } from "./order";
 import { shipOrder } from "./orderTracking";
-import { Driver } from "./person";
+import { Driver, DriverStatus } from "./person";
 import { getTruck, newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
 
@@ -293,7 +293,7 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
     phoneNumberLabel.textContent= "PHONE NUMBER: " + driver.PhoneNumber;
     driverDiv.appendChild(phoneNumberLabel);
     
-    if(driver.Status === 'onRoad') {
+    if(driver.Status === DriverStatus.onRoad) {
     
         const assignedTruckLabel=document.createElement("label");
         assignedTruckLabel.classList.add("label");

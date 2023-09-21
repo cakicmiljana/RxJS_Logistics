@@ -43,9 +43,10 @@ zip([truck$, order$, driver$]).subscribe(([trucks, orders, drivers]) => {
     allOrders.forEach(order => {
         const workingOrder = new Order(order);
         if(order.Status==='shipped') {
-            
-            
-            orderTransitSimulation(workingOrder, workingMap);
+            const currentLocationMarker = new google.maps.Marker({
+                map: workingMap,
+            });
+            orderTransitSimulation(workingOrder, currentLocationMarker);
         }
         else if(order.Status==='pending') {
             

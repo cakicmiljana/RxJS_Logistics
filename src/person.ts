@@ -23,7 +23,7 @@ export class Driver implements Person {
     // Address: string;
     // Salary: number;
     // LicenceNumber: string;
-    Status: 'available' | 'onRoad' | 'onBreak';
+    Status: DriverStatus;
     AssignedVehicleID?: string;
 
     constructor(driverData: Driver) {
@@ -42,7 +42,7 @@ export class Driver implements Person {
     }
 
     destinationReachedUpdate() {
-      this.Status='available';
+      this.Status=DriverStatus.available;
       this.AssignedVehicleID="";
     }
 

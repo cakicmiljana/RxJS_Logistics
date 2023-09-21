@@ -23,17 +23,17 @@
       "RegistrationExpiryDate": "2024-11-24",
       "Model": "G67",
       "Capacity": "29",
-      "Load": "0",
+      "Load": 15,
       "CurrentSpeed": 26,
       "GasLevel": 77,
-      "Status": "idle",
+      "Status": "inTransit",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
       "FinalDestination": {
-        "lat": 42.9977,
-        "lng": 21.9654
+        "lat": 41.8946,
+        "lng": 15.4846
       }
     }
   ],
@@ -53,8 +53,8 @@
       "PhoneNumber": "0661148966",
       "Email": "miticzoran@gmail.com",
       "DateOfBirth": "1999-05-02",
-      "Status": "available",
-      "AssignedVehicleID": ""
+      "Status": "onRoad",
+      "AssignedVehicleID": "LE003AA"
     }
   ],
   "orders": [
@@ -90,6 +90,17 @@
       },
       "AssignedDriverID": "121097831234",
       "AssignedTruckID": "LE536VA"
+    },
+    {
+      "id": 4,
+      "Status": "shipped",
+      "TotalLoad": 15,
+      "Destination": {
+        "lat": 41.8946,
+        "lng": 15.4846
+      },
+      "AssignedDriverID": "02059991349256",
+      "AssignedTruckID": "LE003AA"
     }
   ]
 }

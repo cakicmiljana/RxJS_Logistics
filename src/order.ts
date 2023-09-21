@@ -1,4 +1,4 @@
-import { Driver } from "./person";
+import { Driver, DriverStatus } from "./person";
 import { updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
 import { Truck } from "./vehicle";
 
@@ -65,27 +65,27 @@ export class Order {
     }
 
     
-    shipOrder(allTrucks: Truck[], allDrivers: Driver[]) {
+    // shipOrder(allTrucks: Truck[], allDrivers: Driver[]) {
 
-        let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=this.TotalLoad)
-        let assignedDriver: Driver = allDrivers.find(driver => driver.Status==='available')
+    //     let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=this.TotalLoad)
+    //     let assignedDriver: Driver = allDrivers.find(driver => driver.Status===DriverStatus.available)
 
 
-        assignedTruck.Status='inTransit';
-        assignedTruck.Load=this.TotalLoad;
-        assignedTruck.FinalDestination=new google.maps.LatLng(this.Destination);
+    //     assignedTruck.Status='inTransit';
+    //     assignedTruck.Load=this.TotalLoad;
+    //     assignedTruck.FinalDestination=new google.maps.LatLng(this.Destination);
 
-        assignedDriver.Status='onRoad';
-        assignedDriver.AssignedVehicleID=assignedTruck.id;
+    //     assignedDriver.Status=DriverStatus.onRoad;
+    //     assignedDriver.AssignedVehicleID=assignedTruck.id;
 
-        this.Status='shipped';
-        this.AssignedTruckID=assignedTruck.id;
-        this.AssignedDriverID=assignedDriver.id;
+    //     this.Status='shipped';
+    //     this.AssignedTruckID=assignedTruck.id;
+    //     this.AssignedDriverID=assignedDriver.id;
 
-        updateTruckRequest(assignedTruck);
-        updateDriverRequest(assignedDriver);
-        updateOrderRequest(this);
-    }
+    //     updateTruckRequest(assignedTruck);
+    //     updateDriverRequest(assignedDriver);
+    //     updateOrderRequest(this);
+    // }
 
     destinationReachedUpdate() {
         this.Status='delivered';
