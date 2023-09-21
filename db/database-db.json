@@ -6,16 +6,16 @@
       "Model": "BMW",
       "Capacity": "21",
       "Load": 20,
-      "CurrentSpeed": 90,
-      "GasLevel": 5,
+      "CurrentSpeed": 47,
+      "GasLevel": 23,
       "Status": "inTransit",
       "CurrentLocation": {
-        "lat": 43.219475207329076,
-        "lng": 22.266911528975722
+        "lat": 42.9977,
+        "lng": 21.9654
       },
       "FinalDestination": {
-        "lat": 43.6452,
-        "lng": 22.8457
+        "lat": 43.4984,
+        "lng": 20.4918
       }
     },
     {
@@ -85,8 +85,8 @@
       "Status": "shipped",
       "TotalLoad": 20,
       "Destination": {
-        "lat": 43.6452,
-        "lng": 22.8457
+        "lat": 43.4984,
+        "lng": 20.4918
       },
       "AssignedDriverID": "121097831234",
       "AssignedTruckID": "LE536VA"

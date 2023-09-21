@@ -7,9 +7,10 @@ import { garageLocation } from "../config";
 
 let currentLocationMarker: google.maps.Marker;
 
-export function orderTransitSimulation(orderForTracking: Order) {
+export function orderTransitSimulation(orderForTracking: Order, workingMap: google.maps.Map) {
 
     if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) {
+        
 
         const truck$=getTruck(orderForTracking.AssignedTruckID);
         const driver$=getDriver(orderForTracking.AssignedDriverID);
@@ -26,6 +27,11 @@ export function orderTransitSimulation(orderForTracking: Order) {
             switchMap(([truckData, driverData]) => {
                 truck=new Truck(truckData);
                 driver=new Driver(driverData);
+                currentLocationMarker = new google.maps.Marker({
+                    position: truck.CurrentLocation,
+                    map: workingMap,
+                    title: 'TRUCK ' + truck.id + '\n' + 'Speed: ' + truck.CurrentSpeed.toString() + '\n' + 'Gas level: ' + truck.GasLevel
+                });
                 return from(trackTruckLocation(truck)).pipe(
                     map((location) => ({ truck, driver, location })),
                     finalize(() => {
@@ -40,11 +46,14 @@ export function orderTransitSimulation(orderForTracking: Order) {
                 )
             })
         ).subscribe(({truck, driver, location}) => {
-            truck.CurrentLocation=location;
             //currentLocationMarker.setPosition(truck.CurrentLocation);
+            truck.CurrentLocation=location;
             console.log('Gas level: ', truck.GasLevel);
             console.log('Speed: ', truck.CurrentSpeed);
             console.log("Location: "  + truck.CurrentLocation);
+            currentLocationMarker.setPosition(location);
+            currentLocationMarker.setTitle('TRUCK ' + truck.id + '\n' + 'Speed: ' + truck.CurrentSpeed.toString() + '\n' + 'Gas level: ' + truck.GasLevel
+            )
             // updateTruckRequest(truck);
             // updateDriverRequest(driver);
             // updateOrderRequest(orderForTracking);

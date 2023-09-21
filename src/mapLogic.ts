@@ -3,7 +3,7 @@ import { Truck } from "./vehicle";
 
 let currentLocationMarker: google.maps.Marker;
 
-export function setupMap(mapDiv: HTMLElement) {
+export function setupMap(mapDiv: HTMLElement) : google.maps.Map {
     const myMap = new google.maps.Map(mapDiv, 
         {
             center: garageLocation,
@@ -14,6 +14,8 @@ export function setupMap(mapDiv: HTMLElement) {
             position: garageLocation,
             map: myMap
         });
+
+    return myMap;
 }
 
 export function trackOrder(truck: Truck) {

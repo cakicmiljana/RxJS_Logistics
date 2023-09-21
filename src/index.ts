@@ -21,8 +21,9 @@ let marker;
 
 initializePage(menuDiv, trucksDiv, driversDiv, ordersDiv, contentDiv, mapDiv);
 
+let workingMap: google.maps.Map;
 (async function initMap() {
-    setupMap(mapDiv);
+    workingMap = setupMap(mapDiv);
 })();
 
 
@@ -44,7 +45,7 @@ zip([truck$, order$, driver$]).subscribe(([trucks, orders, drivers]) => {
         if(order.Status==='shipped') {
             
             
-            orderTransitSimulation(workingOrder);
+            orderTransitSimulation(workingOrder, workingMap);
         }
         else if(order.Status==='pending') {
             
