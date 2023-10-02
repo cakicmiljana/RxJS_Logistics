@@ -2,39 +2,48 @@
   "vehicles": [
     {
       "id": "LE536VA",
-      "RegistrationExpiryDate": "2025-05-14",
       "Model": "BMW",
       "Capacity": "21",
-      "Load": 20,
-      "CurrentSpeed": 47,
-      "GasLevel": 23,
+      "Load": 15,
+      "CurrentSpeed": 20,
+      "GasLevel": 34,
       "Status": "inTransit",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
       "FinalDestination": {
-        "lat": 43.4984,
-        "lng": 20.4918
+        "lat": 44.2648,
+        "lng": 20.6676
       }
     },
     {
       "id": "LE003AA",
-      "RegistrationExpiryDate": "2024-11-24",
       "Model": "G67",
       "Capacity": "29",
-      "Load": 15,
-      "CurrentSpeed": 26,
-      "GasLevel": 77,
-      "Status": "inTransit",
+      "Load": 20,
+      "CurrentSpeed": 0,
+      "GasLevel": 100,
+      "Status": "idle",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
-      "FinalDestination": {
-        "lat": 41.8946,
-        "lng": 15.4846
-      }
+      "FinalDestination": {}
+    },
+    {
+      "id": "NI969GT",
+      "Model": "h75",
+      "Capacity": 52,
+      "Load": 20,
+      "CurrentSpeed": 0,
+      "GasLevel": 100,
+      "Status": "idle",
+      "CurrentLocation": {
+        "lat": 42.9977,
+        "lng": 21.9654
+      },
+      "FinalDestination": {}
     }
   ],
   "drivers": [
@@ -53,8 +62,16 @@
       "PhoneNumber": "0661148966",
       "Email": "miticzoran@gmail.com",
       "DateOfBirth": "1999-05-02",
-      "Status": "onRoad",
-      "AssignedVehicleID": "LE003AA"
+      "Status": "available",
+      "AssignedVehicleID": ""
+    },
+    {
+      "id": "64658334654564",
+      "FullName": "Zarko Ilic",
+      "PhoneNumber": "0644495158",
+      "Email": "zarko@gmail.com",
+      "Status": "available",
+      "AssignedVehicleID": ""
     }
   ],
   "orders": [
@@ -81,26 +98,26 @@
       "AssignedTruckID": "LE536VA"
     },
     {
-      "id": 3,
-      "Status": "shipped",
-      "TotalLoad": 20,
+      "id": 5,
+      "Status": "delivered",
+      "TotalLoad": 12,
       "Destination": {
-        "lat": 43.4984,
-        "lng": 20.4918
+        "lat": 42.6589,
+        "lng": 22.1594
       },
       "AssignedDriverID": "121097831234",
       "AssignedTruckID": "LE536VA"
     },
     {
-      "id": 4,
+      "id": 3,
       "Status": "shipped",
       "TotalLoad": 15,
       "Destination": {
-        "lat": 41.8946,
-        "lng": 15.4846
+        "lat": 44.2648,
+        "lng": 20.6676
       },
-      "AssignedDriverID": "02059991349256",
-      "AssignedTruckID": "LE003AA"
+      "AssignedDriverID": "121097831234",
+      "AssignedTruckID": "LE536VA"
     }
   ]
 }

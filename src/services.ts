@@ -1,8 +1,8 @@
-import { Observable, from, mergeMap, tap } from "rxjs";
+import { Observable, from } from "rxjs";
 import { driversURL, ordersURL, vehiclesURL } from "../config";
-import { Truck } from "./vehicle";
-import { Order } from "./order";
-import { Driver } from "./person";
+import { Truck } from "./models/vehicle";
+import { Order } from "./models/order";
+import { Driver } from "./models/person";
 
 export function getTruck(registrationID: string) : Observable<Truck> {
     return from(fetch(vehiclesURL + registrationID)
@@ -30,7 +30,7 @@ export function getTrucksFromServer() : Observable<Truck[]> {
             })
             .catch(error => console.log(error))
 
-        return from(promise);
+    return from(promise);
     
 }
 
@@ -44,6 +44,18 @@ export function updateTruckRequest(truck: Truck) {
 }).then(newTruckData => {
     truck.updateTruckData(truck);
     });
+}
+
+export function newTruckRequest(truck: Truck) {
+    fetch(vehiclesURL, {
+        method: 'POST',
+        headers: {
+           'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(truck)
+    }).then(response => response.json())
+    .catch(err => console.error(err))
+    .then(order => console.log(order))
 }
 
 export async function getOrder(orderID: string) {
@@ -71,23 +83,7 @@ export function getOrdersFromServer() : Observable<Order[]> {
             })
             .catch(error => console.log(error))
 
-        return from(promise);
-
-    // return new Observable<Order[]>((observer) => {
-    //     fetch(ordersURL)
-    //     .then((APIresponse) => {
-    //         if(!APIresponse.ok)
-    //             throw new Error("Orders fetch failed.");
-    //         else {
-    //             return APIresponse.json();
-    //         }
-    //     })
-    //     .then((data: Order[]) => {
-    //         observer.next(data as Order[]);
-    //         observer.complete();
-    //     })
-    //     .catch(err => observer.error(err));
-    // })
+    return from(promise);
     
 }
 
@@ -139,7 +135,7 @@ export function getDriversFromServer() : Observable<Driver[]> {
             })
             .catch(error => console.log(error))
 
-        return from(promise);
+    return from(promise);
 }
 
 export function updateDriverRequest(driver: Driver) {
@@ -152,6 +148,18 @@ export function updateDriverRequest(driver: Driver) {
     }).then(newDriverData => {
         driver.updateDriverData(driver);
     });
+}
+
+export function newDriverRequest(driver: Driver) {
+    fetch(driversURL, {
+        method: 'POST',
+        headers: {
+           'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(driver)
+    }).then(response => response.json())
+    .catch(err => console.error(err))
+    .then(order => console.log(order))
 }
 
 export function deleteContent(event: Event, className: string, host: HTMLElement) {

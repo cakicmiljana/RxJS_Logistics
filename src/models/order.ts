@@ -1,18 +1,15 @@
-import { Driver, DriverStatus } from "./person";
-import { updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
-import { Truck } from "./vehicle";
+import { updateOrderRequest } from "../services";
 
-export enum ShipmentStatus {
-    pending="pending",
-    shipped="shipped",
-    delivered="delivered"
+export const ShipmentStatus = {
+    pending: "pending",
+    shipped: "shipped",
+    delivered: "delivered"
 }
 
 export class Order {
     id: number;
     Status: 'pending' | 'shipped' | 'delivered';
     TotalLoad: number;
-    // DeliveryDate: Date;
     Destination: google.maps.LatLng;
     AssignedDriverID: string;
     AssignedTruckID: string;
@@ -46,6 +43,12 @@ export class Order {
         updateOrderRequest(this);
     }
 
+    prepareForShipping(truckId: string, driverId: string) {
+        this.Status='shipped';
+        this.AssignedTruckID=truckId;
+        this.AssignedDriverID=driverId;
+    }
+
     updateOrderData(newOrderData: Partial<Order>): void {
         if (newOrderData.hasOwnProperty('Status')) {
           this.Status = newOrderData.Status;
@@ -63,29 +66,6 @@ export class Order {
             this.AssignedTruckID = newOrderData.AssignedTruckID;
         }
     }
-
-    
-    // shipOrder(allTrucks: Truck[], allDrivers: Driver[]) {
-
-    //     let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=this.TotalLoad)
-    //     let assignedDriver: Driver = allDrivers.find(driver => driver.Status===DriverStatus.available)
-
-
-    //     assignedTruck.Status='inTransit';
-    //     assignedTruck.Load=this.TotalLoad;
-    //     assignedTruck.FinalDestination=new google.maps.LatLng(this.Destination);
-
-    //     assignedDriver.Status=DriverStatus.onRoad;
-    //     assignedDriver.AssignedVehicleID=assignedTruck.id;
-
-    //     this.Status='shipped';
-    //     this.AssignedTruckID=assignedTruck.id;
-    //     this.AssignedDriverID=assignedDriver.id;
-
-    //     updateTruckRequest(assignedTruck);
-    //     updateDriverRequest(assignedDriver);
-    //     updateOrderRequest(this);
-    // }
 
     destinationReachedUpdate() {
         this.Status='delivered';

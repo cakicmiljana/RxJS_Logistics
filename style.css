@@ -132,8 +132,8 @@ html, body {
   padding: 10px;
   align-items: center;
   border: 1px solid black;
-  height: 40%;
-  width: 40%;
+  height: fit-content;
+  width: fit-content;
   background-color: steelblue;
   color: azure;
   
@@ -158,4 +158,5 @@ html, body {
 input {
   width: 50%;
   margin: 5px;
+  align-items: center;
 }

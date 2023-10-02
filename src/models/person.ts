@@ -1,17 +1,17 @@
-import { driversURL, ordersURL } from "../config";
+import { driversURL, ordersURL } from "../../config";
+import { Order } from "./order";
 
-export enum DriverStatus {
-    'available',
-    'onRoad',
-    'onBreak'
+export const DriverStatus = {
+    available: "available",
+    onRoad: "onRoad",
+    onBreak: "onBreak"
 }
 
 export interface Person {
     id: string,
     FullName: string,
     PhoneNumber: string,
-    Email: string,
-    DateOfBirth: Date
+    Email: string
 }
 
 export class Driver implements Person {
@@ -19,11 +19,7 @@ export class Driver implements Person {
     FullName: string;
     PhoneNumber: string;
     Email: string;
-    DateOfBirth: Date;
-    // Address: string;
-    // Salary: number;
-    // LicenceNumber: string;
-    Status: DriverStatus;
+    Status: string;
     AssignedVehicleID?: string;
 
     constructor(driverData: Driver) {
@@ -31,7 +27,6 @@ export class Driver implements Person {
             this.FullName=driverData.FullName;
             this.PhoneNumber=driverData.PhoneNumber;
             this.Email=driverData.Email;
-            this.DateOfBirth=driverData.DateOfBirth;
             this.Status=driverData.Status;
             this.AssignedVehicleID=driverData.AssignedVehicleID;
         }
@@ -46,15 +41,17 @@ export class Driver implements Person {
       this.AssignedVehicleID="";
     }
 
+    prepareForRoad(truckId: string) {
+      this.Status=DriverStatus.onRoad;
+      this.AssignedVehicleID=truckId;
+    }
+
     updateDriverData(newData: Partial<Driver>): void {
         if (newData.hasOwnProperty('id')) {
           this.id = newData.id;
         }
         if (newData.hasOwnProperty('FullName')) {
           this.FullName = newData.FullName;
-        }
-        if (newData.hasOwnProperty('DateOfBirth')) {
-          this.DateOfBirth = newData.DateOfBirth;
         }
         if (newData.hasOwnProperty('Email')) {
           this.Email = newData.Email;

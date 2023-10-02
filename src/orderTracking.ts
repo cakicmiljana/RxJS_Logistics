@@ -1,22 +1,19 @@
 import { Observable, Subject, combineLatest, concat, concatMap, endWith, filter, finalize, forkJoin, from, iif, interval, map, merge, mergeMap, of, scan, skipUntil, skipWhile, startWith, switchMap, take, takeUntil, takeWhile, tap, zip } from "rxjs";
-import { Order } from "./order";
-import { Driver, DriverStatus } from "./person";
-import { Truck } from "./vehicle";
+import { Order } from "./models/order";
+import { Driver, DriverStatus } from "./models/person";
+import { Truck } from "./models/vehicle";
 import { getDriver, getTruck, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
-import { garageLocation } from "../config";
-
-//let currentLocationMarker: google.maps.Marker;
 
 export function orderTransitSimulation(orderForTracking: Order, currentLocationMarker: google.maps.Marker) {
 
-    if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) {
+    if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) // ???
+    {
         
-
-        const truck$=getTruck(orderForTracking.AssignedTruckID);
-        const driver$=getDriver(orderForTracking.AssignedDriverID);
         let truck: Truck;
         let driver: Driver;
-
+        const truck$=getTruck(orderForTracking.AssignedTruckID);
+        const driver$=getDriver(orderForTracking.AssignedDriverID);
+        
         if(!truck$)
             throw new Error("Failed to load truck.")
         if(!driver$)
@@ -33,9 +30,9 @@ export function orderTransitSimulation(orderForTracking: Order, currentLocationM
                     map((location) => ({ truck, driver, location })),
                     finalize(() => {
                         console.log("trackTruckLocation completed.");
-                        truck.destinationReachedUpdate(); // Call destinationReachedUpdate for truck
-                        driver.destinationReachedUpdate(); // Call destinationReachedUpdate for driver
-                        orderForTracking.destinationReachedUpdate(); // Call destinationReachedUpdate for orderForTracking
+                        truck.destinationReachedUpdate();
+                        driver.destinationReachedUpdate();
+                        orderForTracking.destinationReachedUpdate();
                         updateTruckRequest(truck);
                         updateDriverRequest(driver);
                         updateOrderRequest(orderForTracking);
@@ -43,7 +40,6 @@ export function orderTransitSimulation(orderForTracking: Order, currentLocationM
                 )
             )
         ).subscribe(({truck, driver, location}) => {
-            //currentLocationMarker.setPosition(truck.CurrentLocation);
             truck.CurrentLocation=location;
             console.log('TRUCK: ', truck.id);
             console.log('Gas level: ', truck.GasLevel);
@@ -52,9 +48,6 @@ export function orderTransitSimulation(orderForTracking: Order, currentLocationM
             currentLocationMarker.setPosition(location);
             currentLocationMarker.setTitle('TRUCK ' + truck.id + '\n' + 'Speed: ' + truck.CurrentSpeed.toString() + '\n' + 'Gas level: ' + truck.GasLevel
             )
-            // updateTruckRequest(truck);
-            // updateDriverRequest(driver);
-            // updateOrderRequest(orderForTracking);
         });
 
     }
@@ -67,6 +60,7 @@ export function trackTruckLocation(movingTruck: Truck) {
     let location$ = new Observable();
     let speed$ = new Observable<number>();
     let destinationReachedSubject = new Subject<void>();
+    let noGasSubject = new Subject<void>();
     
     
     gasLevel$ = (function updateGasLevel() {
@@ -74,12 +68,11 @@ export function trackTruckLocation(movingTruck: Truck) {
         return interval(2000).pipe(
             takeUntil(destinationReachedSubject),
             startWith(movingTruck.GasLevel),
-            scan((newGasLevel: number) => newGasLevel>0 ? newGasLevel-1 : newGasLevel - 1, movingTruck.GasLevel),
-            // takeWhile((currentGasLevel: number) => currentGasLevel > 0),
-            //filter(gasLevel => gasLevel > 0),
+            scan((newGasLevel: number) => newGasLevel > 0 ? newGasLevel - 1 : 0, movingTruck.GasLevel),
             tap((currentGasLevel: number) => {
                 movingTruck.GasLevel = currentGasLevel;
-                //console.log("Gas level: " + currentGasLevel);
+                if(currentGasLevel===0)
+                    noGasSubject.next()
             })
         );
     })();
@@ -87,32 +80,27 @@ export function trackTruckLocation(movingTruck: Truck) {
     speed$ = (function updateSpeed() {
 
         
-        return interval(2000).pipe(
+        return interval(6000).pipe(
             takeUntil(destinationReachedSubject),
-            skipUntil(gasLevel$),
+            takeUntil(noGasSubject),
             map((newSpeed) => {
                 newSpeed = Math.floor(Math.random()*100);
                 return newSpeed;
             }),
+            endWith(0),
             tap(newSpeed => {
                 movingTruck.CurrentSpeed = newSpeed;
-                //console.log(movingTruck.id + " speed: " + newSpeed);
-            }),
-            endWith(0)
+            })
         );
     })();
     
     return location$ = (function updateLocation() {
-        const stepSize=1000;
 
-        return zip([speed$, gasLevel$]).pipe(
+        return combineLatest([speed$, gasLevel$]).pipe(
             takeUntil(destinationReachedSubject),
-            filter(([currentSpeed, gasLevel]) => gasLevel > 0),
-            skipUntil(gasLevel$),
-            skipUntil(speed$),
             map(([currentSpeed, gasLevel]) => {
 
-                const speedInMetersPerSecond = (currentSpeed * 1000 ) / 3600; // Convert km/h to m/s
+                const speedInMetersPerSecond = (currentSpeed * 1000 ) / 3600;
                 const latIncrement = ((speedInMetersPerSecond * gasLevel * 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination) || 1)) 
                 * (movingTruck.FinalDestination.lat() - movingTruck.CurrentLocation.lat());
                 const lngIncrement = ((speedInMetersPerSecond * gasLevel * 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination) || 1)) 
@@ -129,10 +117,6 @@ export function trackTruckLocation(movingTruck: Truck) {
                     destinationReachedSubject.next();
                     console.log("final: " + currentLocation);
                     console.log(movingTruck.id + " destination reached.");
-                    // truck.destinationReachedUpdate();
-                    // driver.destinationReachedUpdate();
-                    // orderForTracking.destinationReachedUpdate();
-                    //movingTruck.CurrentSpeed=0;
                 }
 
                 return currentLocation;
@@ -144,47 +128,16 @@ export function trackTruckLocation(movingTruck: Truck) {
 
 export function shipOrder(pendingOrder: Order, allTrucks: Truck[], allDrivers: Driver[]) {
 
-    console.log("ORDER: ", pendingOrder);
-
     let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=pendingOrder.TotalLoad)
     let assignedDriver: Driver = allDrivers.find(driver => driver.Status===DriverStatus.available)
 
+    assignedTruck.prepareForTransit(pendingOrder.TotalLoad, pendingOrder.Destination);
 
-    assignedTruck.Status='inTransit';
-    assignedTruck.Load=pendingOrder.TotalLoad;
-    assignedTruck.FinalDestination=new google.maps.LatLng(pendingOrder.Destination);
+    assignedDriver.prepareForRoad(assignedTruck.id);
 
-    assignedDriver.Status=DriverStatus.onRoad;
-    assignedDriver.AssignedVehicleID=assignedTruck.id;
-
-    pendingOrder.Status='shipped';
-    pendingOrder.AssignedTruckID=assignedTruck.id;
-    pendingOrder.AssignedDriverID=assignedDriver.id;
-
-    console.log("ORDER IS: ", pendingOrder);
-    console.log("TRUCK IS: ", assignedTruck);
-    console.log("DRIVER IS: ", assignedDriver);
+    pendingOrder.prepareForShipping(assignedTruck.id, assignedDriver.id);
 
     updateTruckRequest(assignedTruck);
     updateDriverRequest(assignedDriver);
     updateOrderRequest(pendingOrder);
 }
-
-// export function trackOrder(truck: Truck) {
-
-//     const myMap = new google.maps.Map(document.getElementById("map"), 
-//         {
-//             center: garageLocation,
-//             zoom: 7
-//         });
-    
-//     currentLocationMarker = new google.maps.Marker({
-//         position: truck.CurrentLocation,
-//         map: myMap
-//     });
-
-//     let FinalDestinationMarker = new google.maps.Marker({
-//         position: truck.FinalDestination,
-//         map: myMap
-//     });
-// }

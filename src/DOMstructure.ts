@@ -1,20 +1,18 @@
 import { garageLocation } from "../config";
-import { trackOrder } from "./mapLogic";
-import { Order } from "./order";
+import { Order } from "./models/order";
 import { shipOrder } from "./orderTracking";
-import { Driver, DriverStatus } from "./person";
-import { getTruck, newOrderRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
-import { Truck } from "./vehicle";
+import { Driver, DriverStatus } from "./models/person";
+import { getTruck, newDriverRequest, newOrderRequest, newTruckRequest, updateDriverRequest, updateOrderRequest, updateTruckRequest } from "./services";
+import { Truck } from "./models/vehicle"
 
 export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElement, driversDiv: HTMLDivElement, ordersDiv: HTMLDivElement,
     contentDiv: HTMLDivElement, mapDiv: HTMLDivElement) {
-    // glavni container
+
     const mainDiv = document.createElement("div");
     mainDiv.classList.add("main-div");
     mainDiv.id="main";
     document.body.appendChild(mainDiv);
     
-    // meni
     menuDiv.classList.add("menu-div");
     mainDiv.appendChild(menuDiv);
     
@@ -24,22 +22,18 @@ export function initializePage(menuDiv: HTMLDivElement, trucksDiv: HTMLDivElemen
     menuH.style.marginBottom="40px";
     menuDiv.appendChild(menuH);
     
-    // podaci o kamionima
     trucksDiv.classList.add("trucks-div");
     trucksDiv.textContent="TRUCKS";
     menuDiv.appendChild(trucksDiv);
 
-    // podaci o vozacima
     driversDiv.classList.add("drivers-div");
     driversDiv.textContent="DRIVERS";
     menuDiv.appendChild(driversDiv);
 
-    // podaci o turama
     ordersDiv.classList.add("orders-div");
     ordersDiv.textContent="ORDERS";
     menuDiv.appendChild(ordersDiv);
 
-    // content
     contentDiv.classList.add("content-div");
     mainDiv.appendChild(contentDiv);
 
@@ -72,11 +66,15 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
     currentLocationLabel.classList.add("label");
     currentLocationLabel.textContent= "CURRENT LOCATION: " + truck.CurrentLocation.toString();
     truckDiv.appendChild(currentLocationLabel);
+
+    if(truck.Status==='inTransit') {
+
+        const destinationLabel=document.createElement("label");
+        destinationLabel.classList.add("label");
+        destinationLabel.textContent= "DESTINATION: " + truck.FinalDestination.toString();
+        truckDiv.appendChild(destinationLabel);
+    }
     
-    const destinationLabel=document.createElement("label");
-    destinationLabel.classList.add("label");
-    destinationLabel.textContent= "DESTINATION: " + truck.FinalDestination.toString();
-    truckDiv.appendChild(destinationLabel);
 
     const speedLabel=document.createElement("label");
     speedLabel.classList.add("label");
@@ -88,27 +86,76 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
     gasLevelLabel.textContent="GAS LEVEL: " + truck.GasLevel.toString() + "%";
     truckDiv.appendChild(gasLevelLabel);
 
-    if(truck.Status=='inTransit') {
-        const trackButton=document.createElement("input");
-        trackButton.type="button";
-        trackButton.value="TRACK LOCATION";
-        truckDiv.appendChild(trackButton);
-        
-        trackButton.addEventListener('click', async (event) => 
-        {
-            trackOrder(new Truck(truck));
-            //this.trackTruckLocation(truck.id, host);
-            // console.log('Gas level: ', truck.GasLevel);
-            // console.log('Speed: ', truck.CurrentSpeed);
-            // console.log("Location: "  + truck.CurrentLocation);
-        })
-    }
-
     console.log("div: ", truckDiv);
 
 }
 
 export function drawTrucks(trucks: Truck[], host: HTMLElement) {
+    const newTruckDiv=document.createElement("div");
+    newTruckDiv.classList.add("newOrder-div");
+    newTruckDiv.textContent="NEW TRUCK";
+    host.appendChild(newTruckDiv);
+
+    const registrationPlateDiv = document.createElement("div");
+    newTruckDiv.appendChild(registrationPlateDiv);
+
+    const registrationLabel=document.createElement("label");
+    registrationLabel.classList.add("label");
+    registrationLabel.textContent="REGISTRATION:";
+    registrationPlateDiv.appendChild(registrationLabel);
+    
+    const registrationInput=document.createElement("input");
+    registrationInput.type='string';
+    registrationInput.classList.add("input");
+    registrationPlateDiv.appendChild(registrationInput);
+    
+    const maxLoadDiv=document.createElement("div");
+    newTruckDiv.appendChild(maxLoadDiv);
+
+    const maxLoadLabel=document.createElement("label");
+    maxLoadLabel.classList.add("label");
+    maxLoadLabel.textContent="MAXIMUM LOAD:";
+    maxLoadDiv.appendChild(maxLoadLabel);
+    
+    const maxLoadInput=document.createElement("input");
+    maxLoadInput.type='number';
+    maxLoadInput.classList.add("input");
+    maxLoadDiv.appendChild(maxLoadInput);
+    
+    const modelDiv = document.createElement("div");
+    newTruckDiv.appendChild(modelDiv);
+
+    const modelLabel=document.createElement("label");
+    modelLabel.classList.add("label");
+    modelLabel.textContent="TRUCK MODEL:\n";
+    modelDiv.appendChild(modelLabel);
+    
+    const modelInput=document.createElement("input");
+    modelInput.type='string';
+    modelInput.classList.add("input");
+    modelDiv.appendChild(modelInput);
+
+    const newTruckButton = document.createElement("input");
+    newTruckButton.type="button";
+    newTruckButton.classList.add("newOrder-button");
+    newTruckButton.value="ADD NEW TRUCK";
+    newTruckDiv.appendChild(newTruckButton);
+
+    newTruckButton.addEventListener('click', event => {
+        const newTruck = new Truck({
+            id: registrationInput.value,
+            Model: modelInput.value,
+            Capacity: parseInt( maxLoadInput.value),
+            Load: 0,
+            CurrentSpeed: 0,
+            GasLevel: 100,
+            Status: "idle",
+            CurrentLocation: new google.maps.LatLng(garageLocation)
+        } as Truck);
+        trucks.push(newTruck);
+        newTruckRequest(newTruck);
+    })
+
     const trucksContainer = document.createElement("div");
     trucksContainer.classList.add("container-div");
     host.appendChild(trucksContainer);
@@ -119,28 +166,6 @@ export function drawTrucks(trucks: Truck[], host: HTMLElement) {
         drawTruck(truck, trucksContainer);
     }
 }
-
-
-// export function trackOrder(truck: Truck, host: HTMLElement) {
-//     const mapDiv=document.createElement("div");
-//     host.appendChild(mapDiv);
-
-//     const myMap = new google.maps.Map(mapDiv, 
-//         {
-//             center: garageLocation,
-//             zoom: 7
-//         });
-    
-//     let currentLocationMarker = new google.maps.Marker({
-//         position: truck.CurrentLocation,
-//         map: myMap
-//     });
-
-//     let FinalDestinationMarker = new google.maps.Marker({
-//         position: truck.FinalDestination,
-//         map: myMap
-//     });
-// }
 
 export function drawOrder(order: Order, host: HTMLElement, allTrucks?: Truck[], allDrivers?: Driver[]) {
        
@@ -168,21 +193,7 @@ export function drawOrder(order: Order, host: HTMLElement, allTrucks?: Truck[], 
     destinationLabel.textContent= "DESTINATION: " + order.Destination.toString();
     orderDiv.appendChild(destinationLabel);
 
-    if(order.Status==='shipped') {
-        const trackButton=document.createElement("input");
-        trackButton.type="button";
-        trackButton.value="TRACK ORDER";
-        orderDiv.appendChild(trackButton);
-        
-        trackButton.addEventListener('click', (event) => 
-        {
-            getTruck(order.AssignedTruckID).subscribe(response => {
-                const truck = new Truck(response);
-                trackOrder(truck);
-            });
-        })
-    }
-    else if(order.Status==='pending') {
+    if(order.Status==='pending') {
         const shipButton=document.createElement("input");
         shipButton.type="button";
         shipButton.value="SHIP ORDER";
@@ -273,10 +284,10 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
     driverID.textContent= "DRIVER ID: " + driver.id.toString();
     driverDiv.appendChild(driverID);
     
-    // const driverStatus=document.createElement("label");
-    // driverStatus.classList.add("label");
-    // driverStatus.textContent= "STATUS: " + driver.Status.toUpperCase();
-    // driverDiv.appendChild(driverStatus);
+    const driverStatus=document.createElement("label");
+    driverStatus.classList.add("label");
+    driverStatus.textContent= "STATUS: " + driver.Status.toUpperCase();
+    driverDiv.appendChild(driverStatus);
     
     const fullNameLabel=document.createElement("label");
     fullNameLabel.classList.add("label");
@@ -300,23 +311,86 @@ export function drawDriver(driver: Driver, host: HTMLElement) {
         assignedTruckLabel.textContent= "ASSIGNED TRUCK: " + driver.AssignedVehicleID;
         driverDiv.appendChild(assignedTruckLabel);
 
-        const trackButton=document.createElement("input");
-        trackButton.type="button";
-        trackButton.value="TRACK DRIVER";
-        driverDiv.appendChild(trackButton);
-        
-        trackButton.addEventListener('click', (event) => 
-        {
-            getTruck(driver.AssignedVehicleID).subscribe(response => {
-                const truck = new Truck(response);
-                trackOrder(truck);
-            });
-        })
     }
 
 }
 
 export function drawDrivers(drivers: Driver[], host: HTMLElement) {
+    const newDriverDiv=document.createElement("div");
+    newDriverDiv.classList.add("newOrder-div");
+    newDriverDiv.textContent="NEW DRIVER";
+    host.appendChild(newDriverDiv);
+
+    const idNumberDiv = document.createElement("div");
+    newDriverDiv.appendChild(idNumberDiv);
+
+    const idLabel=document.createElement("label");
+    idLabel.classList.add("label");
+    idLabel.textContent="ID NUMBER:";
+    idNumberDiv.appendChild(idLabel);
+    
+    const idInput=document.createElement("input");
+    idInput.type='string';
+    idInput.classList.add("input");
+    idNumberDiv.appendChild(idInput);
+    
+    const nameDiv=document.createElement("div");
+    newDriverDiv.appendChild(nameDiv);
+
+    const nameLabel=document.createElement("label");
+    nameLabel.classList.add("label");
+    nameLabel.textContent="FULL NAME:";
+    nameDiv.appendChild(nameLabel);
+    
+    const nameInput=document.createElement("input");
+    nameInput.type='text';
+    nameInput.classList.add("input");
+    nameDiv.appendChild(nameInput);
+    
+    const phoneDiv = document.createElement("div");
+    newDriverDiv.appendChild(phoneDiv);
+
+    const phoneLabel=document.createElement("label");
+    phoneLabel.classList.add("label");
+    phoneLabel.textContent="PHONE NUMBER:\n";
+    phoneDiv.appendChild(phoneLabel);
+    
+    const phoneInput=document.createElement("input");
+    phoneInput.type='string';
+    phoneInput.classList.add("input");
+    phoneDiv.appendChild(phoneInput);
+    
+    const emailDiv = document.createElement("div");
+    newDriverDiv.appendChild(emailDiv);
+
+    const emailLabel=document.createElement("label");
+    emailLabel.classList.add("label");
+    emailLabel.textContent="EMAIL:\n";
+    emailDiv.appendChild(emailLabel);
+    
+    const emailInput=document.createElement("input");
+    emailInput.type='string';
+    emailInput.classList.add("input");
+    emailDiv.appendChild(emailInput);
+
+    const newDriverButton = document.createElement("input");
+    newDriverButton.type="button";
+    newDriverButton.classList.add("newOrder-button");
+    newDriverButton.value="ADD NEW DRIVER";
+    newDriverDiv.appendChild(newDriverButton);
+
+    newDriverButton.addEventListener('click', event => {
+        const newDriver = new Driver({
+            id: idInput.value,
+            FullName: nameInput.value,
+            PhoneNumber: phoneInput.value,
+            Email: emailInput.value,
+            Status: "available"
+        } as Driver);
+        drivers.push(newDriver);
+        newDriverRequest(newDriver);
+    })
+
     const driversContainer = document.createElement("div");
     driversContainer.classList.add("container-div");
     host.appendChild(driversContainer);

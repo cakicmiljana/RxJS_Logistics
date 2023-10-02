@@ -1,5 +1,5 @@
 import { garageLocation } from "../config";
-import { Truck } from "./vehicle";
+import { Truck } from "./models/vehicle";
 
 let currentLocationMarker: google.maps.Marker;
 
@@ -10,10 +10,10 @@ export function setupMap(mapDiv: HTMLElement) : google.maps.Map {
             zoom: 7
         });
     
-        currentLocationMarker = new google.maps.Marker({
-            position: garageLocation,
-            map: myMap
-        });
+    currentLocationMarker = new google.maps.Marker({
+        position: garageLocation,
+        map: myMap
+    });
 
     return myMap;
 }
