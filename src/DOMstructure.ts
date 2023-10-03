@@ -64,7 +64,7 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
 
     const currentLocationLabel=document.createElement("label");
     currentLocationLabel.classList.add("label");
-    currentLocationLabel.textContent= "CURRENT LOCATION: " + truck.CurrentLocation.toString();
+    currentLocationLabel.textContent= "STARTING LOCATION: " + truck.CurrentLocation.toString();
     truckDiv.appendChild(currentLocationLabel);
 
     if(truck.Status==='inTransit') {
@@ -76,15 +76,15 @@ export function drawTruck(truck: Truck, host: HTMLElement) {
     }
     
 
-    const speedLabel=document.createElement("label");
-    speedLabel.classList.add("label");
-    speedLabel.textContent= "CURRENT SPEED: " + truck.CurrentSpeed.toString() + "km/s";
-    truckDiv.appendChild(speedLabel);
+    const capacityLabel=document.createElement("label");
+    capacityLabel.classList.add("label");
+    capacityLabel.textContent= "CAPACITY: " + truck.Capacity.toString() + "t";
+    truckDiv.appendChild(capacityLabel);
 
-    const gasLevelLabel=document.createElement("label");
-    gasLevelLabel.classList.add("label");
-    gasLevelLabel.textContent="GAS LEVEL: " + truck.GasLevel.toString() + "%";
-    truckDiv.appendChild(gasLevelLabel);
+    const statusLabel=document.createElement("label");
+    statusLabel.classList.add("label");
+    statusLabel.textContent="STATUS: " + truck.Status;
+    truckDiv.appendChild(statusLabel);
 
     console.log("div: ", truckDiv);
 

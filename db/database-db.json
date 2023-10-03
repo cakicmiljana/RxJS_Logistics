@@ -2,7 +2,7 @@
   "vehicles": [
     {
       "id": "LE536VA",
-      "Model": "BMW",
+      "Model": "BM23",
       "Capacity": "21",
       "Load": 15,
       "CurrentSpeed": 20,
@@ -21,15 +21,18 @@
       "id": "LE003AA",
       "Model": "G67",
       "Capacity": "29",
-      "Load": 20,
-      "CurrentSpeed": 0,
+      "Load": 0,
+      "CurrentSpeed": 30,
       "GasLevel": 100,
       "Status": "idle",
       "CurrentLocation": {
         "lat": 42.9977,
         "lng": 21.9654
       },
-      "FinalDestination": {}
+      "FinalDestination": {
+        "lat": 42.9977,
+        "lng": 21.9654
+      }
     },
     {
       "id": "NI969GT",
@@ -61,7 +64,6 @@
       "FullName": "Zoran Mitic",
       "PhoneNumber": "0661148966",
       "Email": "miticzoran@gmail.com",
-      "DateOfBirth": "1999-05-02",
       "Status": "available",
       "AssignedVehicleID": ""
     },

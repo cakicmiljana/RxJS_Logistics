@@ -15,6 +15,8 @@ export function setupMap(mapDiv: HTMLElement) : google.maps.Map {
         map: myMap
     });
 
+    currentLocationMarker.setTitle("GARAGE")
+
     return myMap;
 }
 

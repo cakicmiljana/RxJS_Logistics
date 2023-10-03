@@ -6,7 +6,7 @@ import { getDriver, getTruck, updateDriverRequest, updateOrderRequest, updateTru
 
 export function orderTransitSimulation(orderForTracking: Order, currentLocationMarker: google.maps.Marker) {
 
-    if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID) // ???
+    if(orderForTracking.AssignedTruckID && orderForTracking.AssignedDriverID)
     {
         
         let truck: Truck;
@@ -29,7 +29,6 @@ export function orderTransitSimulation(orderForTracking: Order, currentLocationM
                 from(trackTruckLocation(truck)).pipe(
                     map((location) => ({ truck, driver, location })),
                     finalize(() => {
-                        console.log("trackTruckLocation completed.");
                         truck.destinationReachedUpdate();
                         driver.destinationReachedUpdate();
                         orderForTracking.destinationReachedUpdate();
@@ -67,7 +66,6 @@ export function trackTruckLocation(movingTruck: Truck) {
 
         return interval(2000).pipe(
             takeUntil(destinationReachedSubject),
-            startWith(movingTruck.GasLevel),
             scan((newGasLevel: number) => newGasLevel > 0 ? newGasLevel - 1 : 0, movingTruck.GasLevel),
             tap((currentGasLevel: number) => {
                 movingTruck.GasLevel = currentGasLevel;
@@ -101,9 +99,9 @@ export function trackTruckLocation(movingTruck: Truck) {
             map(([currentSpeed, gasLevel]) => {
 
                 const speedInMetersPerSecond = (currentSpeed * 1000 ) / 3600;
-                const latIncrement = ((speedInMetersPerSecond * gasLevel * 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination) || 1)) 
+                const latIncrement = ((speedInMetersPerSecond ** 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination))) 
                 * (movingTruck.FinalDestination.lat() - movingTruck.CurrentLocation.lat());
-                const lngIncrement = ((speedInMetersPerSecond * gasLevel * 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination) || 1)) 
+                const lngIncrement = ((speedInMetersPerSecond ** 2) / (google.maps.geometry.spherical.computeDistanceBetween(movingTruck.CurrentLocation, movingTruck.FinalDestination))) 
                 * (movingTruck.FinalDestination.lng() - movingTruck.CurrentLocation.lng());
                     
                 let currentLocation=movingTruck.CurrentLocation;
@@ -115,7 +113,6 @@ export function trackTruckLocation(movingTruck: Truck) {
                     (Math.abs(currentLocation.lng()-movingTruck.FinalDestination.lng()) < 0.01))
                 {
                     destinationReachedSubject.next();
-                    console.log("final: " + currentLocation);
                     console.log(movingTruck.id + " destination reached.");
                 }
 
@@ -131,13 +128,24 @@ export function shipOrder(pendingOrder: Order, allTrucks: Truck[], allDrivers: D
     let assignedTruck: Truck = allTrucks.find(truck => truck.Status==='idle' && truck.Capacity>=pendingOrder.TotalLoad)
     let assignedDriver: Driver = allDrivers.find(driver => driver.Status===DriverStatus.available)
 
-    assignedTruck.prepareForTransit(pendingOrder.TotalLoad, pendingOrder.Destination);
+    if(assignedTruck && assignedDriver)
+    {
+        assignedTruck.Status='inTransit';
+        assignedTruck.Load=pendingOrder.TotalLoad;
+        assignedTruck.FinalDestination=new google.maps.LatLng(pendingOrder.Destination);
 
-    assignedDriver.prepareForRoad(assignedTruck.id);
+        assignedDriver.Status=DriverStatus.onRoad;
+        assignedDriver.AssignedVehicleID=assignedTruck.id;
 
-    pendingOrder.prepareForShipping(assignedTruck.id, assignedDriver.id);
+        pendingOrder.Status='shipped';
+        pendingOrder.AssignedTruckID=assignedTruck.id;
+        pendingOrder.AssignedDriverID=assignedDriver.id;
 
-    updateTruckRequest(assignedTruck);
-    updateDriverRequest(assignedDriver);
-    updateOrderRequest(pendingOrder);
+        updateTruckRequest(assignedTruck);
+        updateDriverRequest(assignedDriver);
+        updateOrderRequest(pendingOrder);
+    }
+    else{
+        console.error("No resources available!");
+    }
 }
